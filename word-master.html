@@ -184,31 +184,7 @@
             border-color: #777;
         }
 
-        /* 플로팅 오브 애니메이션 - 간소화 */
-        .floating-orb {
-            position: fixed;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
-            pointer-events: none;
-            opacity: 0.5;
-        }
-
-        .dark-mode .floating-orb {
-            background: radial-gradient(circle, rgba(255,255,255,0.05), transparent);
-        }
-
-        .floating-orb:nth-child(1) {
-            top: -100px;
-            left: -100px;
-        }
-
-        .floating-orb:nth-child(2) {
-            bottom: -100px;
-            right: -100px;
-        }
-
+        
         .container {
             max-width: 500px;
             margin: 0 auto;
@@ -2717,6 +2693,10 @@
                     <span class="stat-value" id="accuracy">0%</span>
                     <span class="stat-label">전체 정답률</span>
                 </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="userStars">⭐ 1000</span>
+                    <span class="stat-label">보유 별</span>
+                </div>
             </div>
         </div>
 
@@ -2903,7 +2883,15 @@
                             </button>
                         </div>
                     </div>
-
+                    <!-- 구매 기록 -->
+                    <div class="setting-card">
+                        <div class="setting-title">
+                            🛒 구매 기록
+                        </div>
+                        <div style="font-size: 14px; color: #6b7280;">
+                            총 구매한 단어장: <span id="purchaseCount">0</span>개
+                        </div>
+                    </div>
                     <!-- 초기화 -->
                     <div class="reset-section">
                         <button class="reset-btn" onclick="showResetModal()">
@@ -3127,6 +3115,10 @@
         let appData = {
             vocabularies: {},
             currentVocabId: null,
+            userStars: 1000,
+            purchasedVocabs: [],
+            globalMasteredWords: {},
+            masteredWordIds: new Set(),
             globalSettings: {
                 selectedVoice: '',
                 wordTTS: true,
@@ -3177,6 +3169,7 @@
                     answers: [],
                     questions: []
                 };
+                this.price = 0;
             }
         }
 
@@ -3209,7 +3202,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeVoices();
             loadSavedData();
-            createSparkles();
             initSyncChannel(); // 동기화 채널 초기화
             
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
@@ -3569,6 +3561,9 @@ item.innerHTML = `
                 } else {
                     document.getElementById('currentVocabName').textContent = currentVocab.name;
                     updateStats();
+                    if (document.getElementById('purchaseCount')) {
+                        document.getElementById('purchaseCount').textContent = (appData.purchasedVocabs || []).length;
+                    }
                     displayChapters();
                     updateWeakWordsList();
                 }
@@ -3811,6 +3806,11 @@ item.innerHTML = `
                 if (data) {
                     if (data.version === 3) {
                         appData = data;
+                        // 별과 마스터 단어 초기화
+                        if (!appData.userStars) appData.userStars = 1000;
+                        if (!appData.purchasedVocabs) appData.purchasedVocabs = [];
+                        if (!appData.globalMasteredWords) appData.globalMasteredWords = {};
+                        if (!appData.masteredWordIds) appData.masteredWordIds = [];
                     } else {
                         
                         // 이전 버전 마이그레이션
@@ -6595,6 +6595,7 @@ item.innerHTML = `
             
             updateWeakWordsList();
             updateStats();
+            updateStarsForMastery();
             autoSave();
         }
 
@@ -6621,7 +6622,37 @@ item.innerHTML = `
             document.getElementById('weakWordsRecommendModal').style.display = 'none';
             currentVocab.weakWordsRecommendCount = currentVocab.words.filter(w => w.weakness >= 40).length - 1;
         }
-
+        // 별 업데이트 및 마스터 단어 체크
+        function updateStarsForMastery() {
+            if (!currentVocab) return;
+            
+            currentVocab.words.forEach(word => {
+                // 마스터 조건: weakness가 0이고 correctCount가 3 이상
+                if (word.weakness === 0 && word.correctCount >= 3) {
+                    // 전역 마스터 단어 체크 (단어 텍스트로 체크)
+                    if (!appData.globalMasteredWords) {
+                        appData.globalMasteredWords = {};
+                    }
+                    
+                    const wordText = word.word.toLowerCase();
+                    
+                    if (!appData.globalMasteredWords[wordText]) {
+                        // 처음 마스터하는 단어
+                        appData.globalMasteredWords[wordText] = {
+                            firstMasteredDate: new Date().toISOString(),
+                            vocabId: currentVocab.id
+                        };
+                        appData.userStars += 2;
+                        
+                        showFeedback(`🌟 새 단어 마스터! +2 별 획득!`, 'success');
+                    }
+                }
+            });
+            
+            // 별 표시 업데이트
+            document.getElementById('userStars').textContent = `⭐ ${appData.userStars}`;
+            autoSave();
+        }
         // 통계 업데이트
         function updateStats() {
             if (!currentVocab) {
@@ -6637,6 +6668,8 @@ item.innerHTML = `
             const accuracy = currentVocab.statistics.totalAttempts > 0 ? 
                 Math.round((currentVocab.statistics.totalCorrect / currentVocab.statistics.totalAttempts) * 100) : 0;
             document.getElementById('accuracy').textContent = accuracy + '%';
+            document.getElementById('userStars').textContent = `⭐ ${appData.userStars || 1000}`;
+            document.getElementById('purchaseCount').textContent = (appData.purchasedVocabs || []).length;
         }
 
         // 약한단어 목록 업데이트
@@ -7005,11 +7038,15 @@ item.innerHTML = `
                                     <span>📁</span>
                                     <span>${vocab.categoryName}</span>
                                 </div>
+                                <div class="online-vocab-stat">
+                                    <span>⭐</span>
+                                    <span>${vocab.price || 50}개</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <button class="online-download-btn" onclick="downloadVocab('${vocab.url}', '${vocab.name}')" ${isDownloaded ? 'disabled' : ''}>
-                        ${isDownloaded ? '✓ 이미 다운로드됨' : '📥 다운로드'}
+                    <button class="online-download-btn" onclick="downloadVocab('${vocab.url}', '${vocab.name}')" ${isDownloaded && checkIfCurrentVocabHasWords(vocab.url) ? 'disabled' : ''}>
+                        ${isDownloaded ? (checkIfCurrentVocabHasWords(vocab.url) ? '✓ 이미 다운로드됨' : '🔄 무료 재다운로드') : `⭐ ${vocab.price || 50}개로 구매`}
                     </button>
                 `;
                 
@@ -7062,6 +7099,21 @@ item.innerHTML = `
             button.innerHTML = '<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> 다운로드 중...';
             
             try {
+                // 구매 여부 확인
+                const vocabId = url.split('/').pop().replace('.json', '');
+                const isPurchased = checkIfVocabDownloaded(vocabId);
+                const vocabPrice = vocabData.price || 50;
+
+                // 이미 구매한 경우 무료
+                if (!isPurchased) {
+                    // 처음 구매하는 경우만 별 체크
+                    if (appData.userStars < vocabPrice) {
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                        showFeedback(`⭐ 별이 부족합니다! (필요: ${vocabPrice}개, 보유: ${appData.userStars}개)`, 'error');
+                        return;
+                    }
+                }
                 const response = await fetch(`${GITHUB_VOCAB_STORE_URL}/${url}`);
                 if (!response.ok) throw new Error('Failed to download vocabulary');
                 
@@ -7099,8 +7151,21 @@ item.innerHTML = `
                 
                 if (addedCount > 0) {
                     await createChapters();
-                    updateStats();
-                    autoSave();
+                    // 처음 구매시에만 별 차감 및 구매 기록
+                    if (!isPurchased) {
+                        appData.userStars -= vocabPrice;
+                        document.getElementById('userStars').textContent = `⭐ ${appData.userStars}`;
+                        
+                        // 구매 기록 저장
+                        if (!appData.purchasedVocabs) {
+                            appData.purchasedVocabs = [];
+                        }
+                        appData.purchasedVocabs.push(vocabId);
+                        
+                        showFeedback(`✨ ${vocabName} 구매 완료! (-${vocabPrice}⭐) ${addedCount}개 단어 추가`, 'success');
+                    } else {
+                        showFeedback(`✨ ${vocabName} 재다운로드 완료! ${addedCount}개 단어 추가`, 'success');
+                    }
                     
                     button.innerHTML = '✓ 다운로드 완료';
                     
@@ -7126,14 +7191,17 @@ item.innerHTML = `
         }
         // 단어장 다운로드 여부 확인
         function checkIfVocabDownloaded(vocabId) {
+            // 구매 기록 확인
+            return appData.purchasedVocabs && appData.purchasedVocabs.includes(vocabId);
+        }
+        // 현재 단어장에 해당 온라인 단어장의 단어가 있는지 확인
+        function checkIfCurrentVocabHasWords(url) {
             if (!currentVocab) return false;
-            
-            // source에 vocabId가 포함된 단어가 있는지 확인
+            const vocabId = url.split('/').pop().replace('.json', '');
             return currentVocab.words.some(word => 
                 word.source && word.source.includes(vocabId)
             );
         }
-
         // 온라인 단어장 스토어 닫기
         function closeOnlineVocabStore() {
             document.getElementById('onlineVocabStoreModal').style.display = 'none';
@@ -7177,77 +7245,6 @@ item.innerHTML = `
             }
         }
 
-        // 반짝이 효과 생성 - 메모리 최적화
-        let sparkleInterval = null;
-        function createSparkles() {
-            // 기존 인터벌 정리
-            if (sparkleInterval) {
-                clearInterval(sparkleInterval);
-            }
-            
-            sparkleInterval = setInterval(() => {
-                // 활성 반짝이 수 제한을 훨씬 늘림
-                const activeSparkles = document.querySelectorAll('.sparkle').length;
-                if (activeSparkles > 200) return;  // 10 → 200
-                
-                // 매번 여러 개 생성
-                for (let i = 0; i < 5; i++) {  // 한 번에 5개씩 생성
-                    if (Math.random() > 0.3) {  // 0.98 → 0.3 (70% 확률로 생성)
-                        const sparkle = document.createElement('div');
-                        sparkle.className = 'sparkle';
-                        
-                        const container = document.querySelector('.container');
-                        const rect = container.getBoundingClientRect();
-                        sparkle.style.left = rect.left + Math.random() * rect.width + 'px';
-                        sparkle.style.top = rect.top + Math.random() * rect.height + 'px';
-                        
-                        sparkle.style.setProperty('--x', (Math.random() - 0.5) * 100 + 'px');
-                        sparkle.style.setProperty('--y', (Math.random() - 0.5) * 100 + 'px');
-                        // 랜덤 밝은 색상 추가
-                        const colors = [
-                            '#ffffff',  // 흰색
-                            '#ffd700',  // 금색
-                            '#87ceeb',  // 하늘색
-                            '#ff69b4',  // 핫핑크
-                            '#98fb98',  // 연두색
-                            '#dda0dd',  // 연보라
-                            '#f0e68c',  // 연노랑
-                            '#ffb6c1',   // 연분홍
-                            '#e6e6fa', // 라벤더
-                            '#ffe4b5', // 복숭아색
-                            '#b0e0e6', // 파우더블루
-                            '#f5deb3' // 밀색
-                        ];
-                        sparkle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                        sparkle.style.boxShadow = `0 0 6px ${sparkle.style.background}`;
-                        // 크기 랜덤 (4px ~ 12px)
-                        const size = 4 + Math.random() * 8;  // 최소 4px, 최대 12px
-                        sparkle.style.width = size + 'px';
-                        sparkle.style.height = size + 'px';
-                        document.body.appendChild(sparkle);
-                        cleanupList.push(sparkle);
-                        
-                        // cleanupList 크기 제한도 늘림
-                        if (cleanupList.length > 500) {  // 100 → 500
-                            const oldElement = cleanupList.shift();
-                            if (oldElement && oldElement.parentNode) {
-                                oldElement.parentNode.removeChild(oldElement);
-                            }
-                        }
-                        
-                        setTimeout(() => {
-                            if (sparkle.parentNode) {
-                                document.body.removeChild(sparkle);
-                            }
-                            const index = cleanupList.indexOf(sparkle);
-                            if (index > -1) {
-                                cleanupList.splice(index, 1);
-                            }
-                        }, 1000);
-                    }
-                }
-            }, 50);  // 2000ms → 50ms (0.05초마다 체크)
-        }
 
         // 성공 시 반짝이 폭발
         function createSuccessSparkles() {
