@@ -2234,56 +2234,172 @@
             padding: 20px 40px;
         }
 
-        /* 별 애니메이션 */
-        .star-animation {
+
+        /* 별 날아오는 애니메이션 */
+        .flying-star {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 120px;
+            font-size: 102px;
             z-index: 3000;
-            opacity: 0;
-            animation: starBurst 2s ease-out;
-            filter: drop-shadow(0 0 20px gold);
-        }
-
-        @keyframes starBurst {
-            0% { 
-                opacity: 0; 
-                transform: translate(-50%, -50%) scale(0) rotate(0deg); 
-            }
-            50% { 
-                opacity: 1; 
-                transform: translate(-50%, -50%) scale(1.2) rotate(180deg); 
-            }
-            100% { 
-                opacity: 0; 
-                transform: translate(-50%, -50%) scale(0.8) rotate(360deg); 
-            }
-        }
-
-        /* 흔들림 애니메이션 */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px) rotate(-1deg); }
-            75% { transform: translateX(8px) rotate(1deg); }
-        }
-
-        .shake {
-            animation: shake 0.5s ease-in-out;
-        }
-
-        /* 반짝이 효과 */
-        .sparkle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: white;
-            border-radius: 50%;
-            animation: sparkle 1s ease-out forwards;
+            filter: drop-shadow(0 0 20px gold) drop-shadow(0 0 40px gold);
             pointer-events: none;
-            box-shadow: 0 0 6px white;
         }
+        
+        /* 무지개별도 동일한 크기로 */
+        .flying-star .rainbow-star {
+            font-size: 102px;
+        }
+
+        /* 3개 별 - 삼각형 배치 */
+        .triangle-top {
+            animation: flyFromTop 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .triangle-left {
+            animation: flyFromLeft 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .triangle-right {
+            animation: flyFromRight 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* 2개 별 - 나란히 배치 */
+        .line-left {
+            animation: flyFromLeftSide 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .line-right {
+            animation: flyFromRightSide 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* 1개 별 - 중앙 */
+        .single-star {
+            animation: flyFromRandom 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* 삼각형 배치 애니메이션 */
+        @keyframes flyFromTop {
+            0% {
+                transform: translate(-50%, -50%) translateY(-1000px) rotate(0deg) scale(0.1);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translateY(-70px) rotate(720deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes flyFromLeft {
+            0% {
+                transform: translate(-50%, -50%) translate(-1000px, 1000px) rotate(0deg) scale(0.1);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translate(-70px, 70px) rotate(720deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes flyFromRight {
+            0% {
+                transform: translate(-50%, -50%) translate(1000px, 1000px) rotate(0deg) scale(0.1);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translate(70px, 70px) rotate(720deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* 나란히 배치 애니메이션 */
+        @keyframes flyFromLeftSide {
+            0% {
+                transform: translate(-50%, -50%) translateX(-1200px) rotate(0deg) scale(0.1);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(-60px) rotate(720deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes flyFromRightSide {
+            0% {
+                transform: translate(-50%, -50%) translateX(1200px) rotate(0deg) scale(0.1);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(60px) rotate(720deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* 단일 별 애니메이션 */
+        @keyframes flyFromRandom {
+            0% {
+                transform: translate(-50%, -50%) translate(-800px, -800px) rotate(0deg) scale(0.1);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translate(0, 0) rotate(1080deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* 충격파 효과 */
+        .shockwave {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 215, 0, 0.8);
+            z-index: 2998;
+            pointer-events: none;
+            animation: shockwaveExpand 0.8s ease-out forwards;
+        }
+
+        @keyframes shockwaveExpand {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* 화면 흔들림 효과 */
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-2.5px, -2.5px); }
+            20% { transform: translate(2.5px, -2.5px); }
+            30% { transform: translate(-2.5px, 2.5px); }
+            40% { transform: translate(2.5px, 2.5px); }
+            50% { transform: translate(-1.5px, -1.5px); }
+            60% { transform: translate(1.5px, -1.5px); }
+            70% { transform: translate(-1.5px, 1.5px); }
+            80% { transform: translate(1.5px, 1.5px); }
+            90% { transform: translate(-0.5px, -0.5px); }
+        }
+
 
         @keyframes sparkle {
             0% {
@@ -6007,7 +6123,7 @@ item.innerHTML = `
             }
             
             // 모든 파티클을 동시에 DOM에 추가하고 애니메이션 시작
-            particles.forEach((particle, index) => {
+            particles.forEach((particle) => {
                 document.body.appendChild(particle);
                 cleanupList.push(particle);
                 
@@ -6019,8 +6135,10 @@ item.innerHTML = `
                     }
                 }
                 
-                // 모든 파티클을 동시에 애니메이션 시작 (지연 없음)
-                particle.style.animation = 'particleAnimation 1s ease-out forwards';
+                // 애니메이션 시작
+                requestAnimationFrame(() => {
+                    particle.style.animation = 'particleAnimation 1s ease-out forwards';
+                });
                 
                 // 1초 후 제거
                 setTimeout(() => {
@@ -6163,6 +6281,7 @@ item.innerHTML = `
         }
 
         // 테스트 완료
+        // 테스트 완료
         function finishTest() {
             const correctCount = testAnswers.filter(a => a.correct).length;
             const accuracy = Math.round((correctCount / testAnswers.length) * 100);
@@ -6181,13 +6300,9 @@ item.innerHTML = `
                 currentVocab.chapters[currentChapter].stars = stars;
             }
             
-            // 100점 효과
+            // 100점 처리
             if (accuracy === 100) {
                 currentVocab.chapters[currentChapter].perfectScore = true;
-                showPerfectScore();
-            } else if (stars >= 2) {
-                // 별 애니메이션
-                showStarAnimation(stars);
             }
             
             updateStats();
@@ -6202,15 +6317,124 @@ item.innerHTML = `
                 questions: []
             };
             
+            // 새로운 별 효과 표시
+            showStarEffect(accuracy);
+            
             setTimeout(() => {
                 exitTestMode();
                 showFeedback(`테스트 완료! 정확도: ${accuracy}% (${stars}⭐)`, 'success');
                 
+                // 테스트 모드가 사라질 때 별도 함께 제거
+                document.querySelectorAll('.flying-star, .shockwave').forEach(el => el.remove());
+                
                 // 약한단어 권장 확인
                 checkWeakWordsRecommendation();
-            }, accuracy === 100 ? 3500 : 2000);
+            }, 3000); // 별 효과를 보기 위해 3초로 증가
         }
-
+        // 새로운 별 효과 함수
+        // 새로운 별 효과 함수
+        function showStarEffect(accuracy) {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // 기존 별들 제거
+            document.querySelectorAll('.flying-star, .shockwave').forEach(el => el.remove());
+            
+            let count = 1;
+            let isRainbow = false;
+            
+            if (accuracy === 100) {
+                count = 3;
+                isRainbow = true;
+            } else if (accuracy >= 90) {
+                count = 3;
+            } else if (accuracy >= 70) {
+                count = 2;
+            }
+            
+            let starsCreated = 0;
+            
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    // 별 생성
+                    const star = document.createElement('div');
+                    star.className = 'flying-star';
+                    
+                    if (isRainbow) {
+                        star.innerHTML = '<span class="rainbow-star">⭐</span>';
+                    } else {
+                        star.textContent = '⭐';
+                    }
+                    
+                    // 위치 설정
+                    star.style.left = centerX + 'px';
+                    star.style.top = centerY + 'px';
+                    
+                    // 애니메이션 클래스 추가
+                    if (count === 3) {
+                        // 삼각형 배치
+                        if (i === 0) star.classList.add('triangle-top');
+                        else if (i === 1) star.classList.add('triangle-left');
+                        else star.classList.add('triangle-right');
+                    } else if (count === 2) {
+                        // 나란히 배치
+                        if (i === 0) star.classList.add('line-left');
+                        else star.classList.add('line-right');
+                    } else {
+                        // 중앙 배치
+                        star.classList.add('single-star');
+                    }
+                    
+                    document.body.appendChild(star);
+                    cleanupList.push(star);
+                    
+                    starsCreated++;
+                    
+                    // 마지막 별이 도착한 후에만 충격 효과 실행
+                    if (starsCreated === count) {
+                        setTimeout(() => {
+                            // 모든 별에 대한 충격파 생성
+                            for (let j = 0; j < count; j++) {
+                                // 별의 최종 위치 계산
+                                let finalX = centerX;
+                                let finalY = centerY;
+                                
+                                if (count === 3) {
+                                    if (j === 0) finalY -= 70;
+                                    else if (j === 1) { finalX -= 70; finalY += 70; }
+                                    else { finalX += 70; finalY += 70; }
+                                } else if (count === 2) {
+                                    if (j === 0) finalX -= 60;
+                                    else finalX += 60;
+                                }
+                                
+                                // 충격파
+                                const shockwave = document.createElement('div');
+                                shockwave.className = 'shockwave';
+                                shockwave.style.left = finalX + 'px';
+                                shockwave.style.top = finalY + 'px';
+                                document.body.appendChild(shockwave);
+                                
+                                // 효과 제거
+                                setTimeout(() => {
+                                    shockwave.remove();
+                                }, 800);
+                            }
+                            
+                            // 화면 흔들림 효과 - 현재 보이는 question-card에 적용
+                            const questionCard = document.querySelector('#questionCard');
+                            if (questionCard) {
+                                questionCard.style.animation = 'screenShake 0.5s ease-in-out';
+                                setTimeout(() => {
+                                    questionCard.style.animation = '';
+                                }, 500);
+                            }
+                        }, 1200); // 별 애니메이션이 끝나는 시간
+                    }
+                    
+                }, i * 300);
+            }
+        }
         // 100점 효과
         function showPerfectScore() {
             const starElement = document.createElement('div');
