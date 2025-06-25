@@ -2898,6 +2898,18 @@
                             🗑️ 현재 단어장 초기화
                         </button>
                     </div>
+                    <!-- 완전 초기화 (추가) -->
+                    <div class="setting-card" style="margin-top: 30px; border: 2px solid #ef4444;">
+                        <div class="setting-title" style="color: #ef4444;">
+                            ⚠️ 완전 초기화 (위험!)
+                        </div>
+                        <div style="font-size: 14px; color: #ef4444; margin-bottom: 15px;">
+                            모든 단어장, 학습 기록, 보유 별이 삭제되며 복구할 수 없습니다.
+                        </div>
+                        <button class="reset-btn" style="background: #dc2626;" onclick="showCompleteResetModal()">
+                            💀 어플 완전 초기화
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3051,6 +3063,45 @@
             <div class="modal-buttons">
                 <button class="modal-btn yes" onclick="resetData()">예</button>
                 <button class="modal-btn no" onclick="closeResetModal()">아니오</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="completeResetModal1">
+        <div class="modal-content">
+            <h3 style="color: #ef4444;">⚠️ 경고: 완전 초기화</h3>
+            <p style="color: #ef4444; font-weight: 600;">정말로 모든 데이터를 삭제하시겠습니까?</p>
+            <p>다음 항목들이 <strong>영구적으로</strong> 삭제됩니다:</p>
+            <ul style="text-align: left; margin: 20px 0; color: #4b5563;">
+                <li>✓ 모든 단어장과 단어들</li>
+                <li>✓ 모든 학습 기록과 통계</li>
+                <li>✓ 보유 중인 별 <span id="resetStarCount" style="color: #f59e0b; font-weight: 600;"></span>개</li>
+                <li>✓ 구매한 단어장 기록 (재구매 필요)</li>
+            </ul>
+            <p style="color: #ef4444; font-size: 14px;">이 작업은 되돌릴 수 없습니다!</p>
+            <div class="modal-buttons">
+                <button class="modal-btn yes" style="background: #ef4444;" onclick="showCompleteResetModal2()">계속</button>
+                <button class="modal-btn no" style="background: #6b7280;" onclick="closeCompleteResetModal1()">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="completeResetModal2">
+        <div class="modal-content">
+            <h3 style="color: #dc2626;">💀 최종 확인</h3>
+            <p style="color: #dc2626; font-weight: 700; font-size: 18px;">정말 확실하십니까?</p>
+            <p>지금 취소하지 않으면 <strong style="color: #dc2626;">모든 것이 사라집니다.</strong></p>
+            <div style="background: #fee2e2; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <p style="color: #991b1b; margin: 0;">
+                    마지막 기회입니다. 정말로 처음부터 다시 시작하시겠습니까?
+                </p>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn yes" style="background: #dc2626;" onclick="completeReset()">
+                    완전 초기화 실행
+                </button>
+                <button class="modal-btn no" style="background: #10b981;" onclick="closeCompleteResetModal2()">
+                    취소 (안전)
+                </button>
             </div>
         </div>
     </div>
@@ -6970,7 +7021,98 @@ item.innerHTML = `
                 `;
             }
         }
+        // 완전 초기화 모달 1 표시
+        function showCompleteResetModal() {
+            document.getElementById('resetStarCount').textContent = appData.userStars;
+            document.getElementById('completeResetModal1').style.display = 'flex';
+        }
 
+        // 완전 초기화 모달 1 닫기
+        function closeCompleteResetModal1() {
+            document.getElementById('completeResetModal1').style.display = 'none';
+        }
+
+        // 완전 초기화 모달 2 표시
+        function showCompleteResetModal2() {
+            document.getElementById('completeResetModal1').style.display = 'none';
+            document.getElementById('completeResetModal2').style.display = 'flex';
+        }
+
+        // 완전 초기화 모달 2 닫기
+        function closeCompleteResetModal2() {
+            document.getElementById('completeResetModal2').style.display = 'none';
+        }
+
+        // 완전 초기화 실행
+        async function completeReset() {
+            // 진행 중인 작업 중단
+            if (isStudyMode) exitStudyMode();
+            if (isTestMode) exitTestMode();
+            
+            // 모든 데이터 초기화
+            appData = {
+                vocabularies: {},
+                currentVocabId: null,
+                userStars: 1000,  // 기본 별로 초기화
+                purchasedVocabs: [],
+                globalMasteredWords: {},
+                masteredWordIds: new Set(),
+                globalSettings: {
+                    selectedVoice: '',
+                    wordTTS: true,
+                    exampleTTS: false,
+                    darkMode: false,
+                    studySpeed: 2.8,
+                    testWordTTS: true,
+                    testAnswerTTS: false,
+                    ttsPreload: 0,
+                    visibility: {
+                        word: true,
+                        pronunciation: true,
+                        meaning: true,
+                        example: true,
+                        exampleMeaning: true
+                    }
+                },
+                version: 3
+            };
+            
+            // 기본 단어장 생성
+            const defaultVocab = new Vocabulary('기본 단어장');
+            appData.vocabularies[defaultVocab.id] = defaultVocab;
+            appData.currentVocabId = defaultVocab.id;
+            currentVocab = defaultVocab;
+            
+            // 설정 UI 초기화
+            restoreGlobalSettings();
+            
+            // UI 업데이트
+            updateUI();
+            
+            // 저장
+            await autoSave();
+            
+            // IndexedDB도 완전히 삭제
+            if (db) {
+                const transaction = db.transaction(['appData'], 'readwrite');
+                const store = transaction.objectStore('appData');
+                await store.clear();
+            }
+            
+            // localStorage도 삭제
+            localStorage.removeItem('wordMasterData');
+            
+            // 모달 닫기
+            closeCompleteResetModal2();
+            
+            // 완료 메시지
+            showFeedback('💀 모든 데이터가 완전히 초기화되었습니다', 'success');
+            
+            // 페이지 새로고침 (완전한 초기화를 위해)
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        }
         // 온라인 단어장 표시
         function displayOnlineVocabs(category) {
             const listElement = document.getElementById('onlineVocabList');
