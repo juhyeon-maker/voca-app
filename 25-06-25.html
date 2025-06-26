@@ -2945,7 +2945,7 @@
         <div class="test-header">
             <div class="test-controls">
                 <button class="study-control-btn" onclick="toggleFullscreen()">⛶</button>
-                <button class="study-control-btn" id="testPauseBtn" onclick="toggleTestPause()">||</button>
+                <button class="study-control-btn" onclick="toggleTestPause()">||</button>
                 <button class="study-control-btn" onclick="exitTestMode()">✕</button>
             </div>
             <div style="font-weight: 600; font-size: 18px;">TEST</div>
@@ -3707,7 +3707,6 @@ item.innerHTML = `
                 console.error('복원할 챕터를 찾을 수 없습니다');
                 // 진행상황 초기화
                 currentVocab.studyProgress = { chapterIndex: -1, cardIndex: 0 };
-                currentVocab.studyShuffledWords = null;
                 autoSave();
                 return;
             }
@@ -3717,17 +3716,6 @@ item.innerHTML = `
                 console.error('진행상황이 유효하지 않습니다');
                 // 진행상황 초기화
                 currentVocab.studyProgress = { chapterIndex: -1, cardIndex: 0 };
-                currentVocab.studyShuffledWords = null;
-                autoSave();
-                return;
-            }
-            
-            // 섞인 배열이 없으면 복원 불가
-            if (!currentVocab.studyShuffledWords || currentVocab.studyShuffledWords.length !== chapterWords.length) {
-                console.error('섞인 단어 배열이 유효하지 않습니다');
-                // 진행상황 초기화
-                currentVocab.studyProgress = { chapterIndex: -1, cardIndex: 0 };
-                currentVocab.studyShuffledWords = null;
                 autoSave();
                 return;
             }
@@ -4207,12 +4195,8 @@ item.innerHTML = `
         // 데이터 자동 저장 (동기화 포함)
         async function autoSave() {
             try {
-                // 임시 데이터 제거 (저장 크기 최적화)
-                if (currentVocab && currentVocab.studyShuffledWords) {
-                    delete currentVocab.studyShuffledWords;
-                }
-        
-                const dataStr = JSON.stringify(appData);                
+                const dataStr = JSON.stringify(appData);
+                
                 // 크기 체크
                 const sizeInMB = dataStr.length / (1024 * 1024);
                 if (sizeInMB > 5) {
@@ -4698,13 +4682,12 @@ item.innerHTML = `
         }
 
         // 백업 파일 업로드 처리
-// 백업 파일 업로드 처리
         function handleBackupUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
             const reader = new FileReader();
-            reader.onload = async function(e) {
+            reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
                     
@@ -4713,8 +4696,15 @@ item.innerHTML = `
                     if (isTestMode) exitTestMode();
                     
                     if (data.version === 3) {
-                        // 최적화된 데이터 복원
-                        await restoreOptimizedData(data);
+                        // 새 버전 직접 로드
+                        appData = data;
+                        
+                        // 현재 단어장 재설정
+                        if (appData.currentVocabId && appData.vocabularies[appData.currentVocabId]) {
+                            currentVocab = appData.vocabularies[appData.currentVocabId];
+                        } else {
+                            currentVocab = null;
+                        }
                     } else if (data.version === 2) {
                         // 버전 2 마이그레이션
                         migrateV2Data(data);
@@ -4745,114 +4735,6 @@ item.innerHTML = `
             
             // 입력 초기화
             event.target.value = '';
-        }
-        
-        // 최적화된 데이터 복원 함수 추가
-        async function restoreOptimizedData(data) {
-            // 기본 데이터 복원
-            appData.currentVocabId = data.currentVocabId;
-            appData.userStars = data.userStars || 1000;
-            appData.purchasedVocabs = data.purchasedVocabs || [];
-            appData.globalMasteredWords = data.globalMasteredWords || {};
-            appData.globalSettings = data.globalSettings || appData.globalSettings;
-            
-            // 단어장 복원
-            appData.vocabularies = {};
-            
-            for (const [vocabId, vocabData] of Object.entries(data.vocabularies)) {
-                const restoredVocab = new Vocabulary(vocabData.name);
-                restoredVocab.id = vocabData.id;
-                restoredVocab.createdAt = vocabData.createdAt;
-                restoredVocab.lastStudiedAt = vocabData.lastStudiedAt;
-                restoredVocab.totalStudyTime = vocabData.totalStudyTime || 0;
-                restoredVocab.studyStreak = vocabData.studyStreak || 0;
-                restoredVocab.lastStreakDate = vocabData.lastStreakDate;
-                restoredVocab.statistics = vocabData.statistics || { totalCorrect: 0, totalAttempts: 0 };
-                restoredVocab.settings = vocabData.settings || { chapterSize: 10 };
-                restoredVocab.weakWordsRecommendCount = vocabData.weakWordsRecommendCount || 0;
-                restoredVocab.studyProgress = vocabData.studyProgress || { chapterIndex: -1, cardIndex: 0 };
-                restoredVocab.testProgress = vocabData.testProgress || { chapterIndex: -1, currentIndex: 0, answers: [], questions: [] };
-                restoredVocab.price = vocabData.price || 0;
-                restoredVocab.sourceInfo = vocabData.sourceInfo || null;
-                
-                // 온라인 단어장이면 재다운로드 시도
-                if (vocabData.sourceInfo) {
-                    showFeedback(`📥 '${vocabData.name}' 단어장을 복원 중...`, 'warning');
-                    
-                    try {
-                        // 온라인에서 단어 데이터 다시 가져오기
-                        const vocabUrl = `vocabularies/${vocabData.sourceInfo.vocabId}.json`;
-                        const response = await fetch(`${GITHUB_VOCAB_STORE_URL}/${vocabUrl}`);
-                        
-                        if (response.ok) {
-                            const onlineData = await response.json();
-                            
-                            // 전체 단어 복원
-                            restoredVocab.words = onlineData.words.map(word => {
-                                const wordId = `${onlineData.id}_${word.word}_${Date.now()}_${Math.random()}`;
-                                
-                                // 학습 기록이 있는 단어 찾기
-                                const studiedWord = vocabData.studiedWords.find(sw => sw.word === word.word);
-                                
-                                return {
-                                    id: wordId,
-                                    word: word.word,
-                                    pronunciation: word.pronunciation || '',
-                                    meaning: word.meaning,
-                                    example: word.example || '',
-                                    exampleMeaning: word.exampleMeaning || '',
-                                    weakness: studiedWord ? studiedWord.weakness : 0,
-                                    correctCount: studiedWord ? studiedWord.correctCount : 0,
-                                    totalAttempts: studiedWord ? studiedWord.totalAttempts : 0,
-                                    consecutiveCorrect: studiedWord ? studiedWord.consecutiveCorrect : 0,
-                                    lastCorrect: studiedWord ? studiedWord.lastCorrect : false,
-                                    source: vocabData.name
-                                };
-                            });
-                            
-                            showFeedback(`✅ '${vocabData.name}' 단어장 복원 완료!`, 'success');
-                        } else {
-                            throw new Error('온라인 단어장을 찾을 수 없습니다');
-                        }
-                    } catch (error) {
-                        console.error('온라인 단어장 복원 실패:', error);
-                        // 학습한 단어만이라도 복원
-                        restoredVocab.words = vocabData.studiedWords || [];
-                        showFeedback(`⚠️ '${vocabData.name}' 온라인 복원 실패. 학습 기록만 복원됨`, 'warning');
-                    }
-                } else {
-                    // 로컬 단어장은 학습한 단어만 복원
-                    restoredVocab.words = vocabData.studiedWords || [];
-                }
-                
-                // 챕터 재생성
-                if (restoredVocab.words.length > 0) {
-                    currentVocab = restoredVocab;
-                    await createChapters();
-                    
-                    // 챕터 진행상황 복원
-                    if (vocabData.chapters) {
-                        vocabData.chapters.forEach(savedChapter => {
-                            const chapter = restoredVocab.chapters.find(ch => ch.id === savedChapter.id);
-                            if (chapter) {
-                                chapter.accuracy = savedChapter.accuracy || 0;
-                                chapter.stars = savedChapter.stars || 0;
-                                chapter.completedCount = savedChapter.completedCount || 0;
-                                chapter.perfectScore = savedChapter.perfectScore || false;
-                            }
-                        });
-                    }
-                }
-                
-                appData.vocabularies[vocabId] = restoredVocab;
-            }
-            
-            // 현재 단어장 설정
-            if (appData.currentVocabId && appData.vocabularies[appData.currentVocabId]) {
-                currentVocab = appData.vocabularies[appData.currentVocabId];
-            } else {
-                currentVocab = null;
-            }
         }
 
         // V2 데이터 마이그레이션 - 개선된 버전
@@ -5661,16 +5543,9 @@ item.innerHTML = `
             if (currentVocab.studyProgress.chapterIndex !== chapterIndex) {
                 currentVocab.studyProgress = { chapterIndex: chapterIndex, cardIndex: 0 };
                 currentStudyIndex = 0;
-                // 섞인 배열도 초기화
-                currentVocab.studyShuffledWords = null;
             } else {
                 // 같은 챕터면 이어서 진행
                 currentStudyIndex = currentVocab.studyProgress.cardIndex || 0;
-                // 이어서 진행하는 경우에도 섞인 배열이 없으면 초기화
-                if (!currentVocab.studyShuffledWords) {
-                    currentStudyIndex = 0;
-                    currentVocab.studyProgress.cardIndex = 0;
-                }
             }
             
             currentChapter = chapterIndex;
@@ -5693,26 +5568,10 @@ item.innerHTML = `
             if (!chapter) return;
             
             const chapterWords = getChapterWords(chapter);
-            if (chapterWords.length === 0) return;
+            if (currentStudyIndex >= chapterWords.length) return;
             
-            // 학습 시작 시 한 번만 단어 순서 섞기
-            if (!currentVocab.studyShuffledWords || currentVocab.studyShuffledWords.length !== chapterWords.length) {
-                // 단어 배열 복사 후 섞기
-                currentVocab.studyShuffledWords = [...chapterWords];
-                for (let i = currentVocab.studyShuffledWords.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [currentVocab.studyShuffledWords[i], currentVocab.studyShuffledWords[j]] = 
-                    [currentVocab.studyShuffledWords[j], currentVocab.studyShuffledWords[i]];
-                }
-            }
+            const word = chapterWords[currentStudyIndex];
             
-            // 인덱스 범위 체크
-            if (currentStudyIndex >= currentVocab.studyShuffledWords.length) {
-                currentStudyIndex = 0;
-            }
-            
-            // 섞인 배열에서 단어 가져오기
-            const word = currentVocab.studyShuffledWords[currentStudyIndex];            
             document.getElementById('studyWordText').textContent = word.word;
             document.getElementById('studyWordPronunciation').textContent = word.pronunciation ? `[${word.pronunciation}]` : '';
             document.getElementById('studyWordMeaning').textContent = word.meaning;
@@ -5761,7 +5620,7 @@ item.innerHTML = `
             // 다음 카드 프리로드
             if (appData.globalSettings.ttsPreload > 0) {
                 const nextIndex = (currentStudyIndex + 1) % chapterWords.length;
-                const nextWord = currentVocab.studyShuffledWords[nextIndex];
+                const nextWord = chapterWords[nextIndex];
                 if (nextWord && selectedVoice) {
                     let nextText = '';
                     
@@ -5782,6 +5641,7 @@ item.innerHTML = `
             
             saveProgress();
         }
+
         // 학습 타이머 시작
         function startStudyTimer() {
             if (studyInterval) clearInterval(studyInterval);
@@ -5801,31 +5661,23 @@ item.innerHTML = `
             if (!chapter) return;
             
             const chapterWords = getChapterWords(chapter);
-            currentStudyIndex++;
+            currentStudyIndex = (currentStudyIndex + 1) % chapterWords.length;
             
             // 한 바퀴 돌았을 때
-            if (currentStudyIndex >= chapterWords.length) {
-                currentStudyIndex = 0;
+            if (currentStudyIndex === 0) {
                 currentVocab.chapters[currentChapter].completedCount++;
-                // 섞인 배열 초기화 제거 - 한 세션 동안 같은 순서 유지
-                // currentVocab.studyShuffledWords = null;  // 이 줄을 주석처리 또는 삭제
                 autoSave();
             }
             
-            // 진행상황 저장
-            currentVocab.studyProgress.cardIndex = currentStudyIndex;
-            
             showCurrentStudyCard();
-        }        
-        
+        }
+
         // 학습 일시정지/재개
         function toggleStudyPause() {
             isPaused = !isPaused;
             const pauseIndicator = document.getElementById('pauseIndicator');
             
             if (isPaused) {
-                // 일시정지
-                pauseIndicator.textContent = '일시정지';
                 pauseIndicator.classList.remove('hidden');
                 pauseIndicator.style.animation = 'pauseFadeInOut 1s ease-out';
                 speechSynthesis.cancel();
@@ -5837,17 +5689,9 @@ item.innerHTML = `
                 setTimeout(() => {
                     pauseIndicator.classList.add('hidden');
                 }, 1000);
-            } else {
-                // 학습재개
-                pauseIndicator.textContent = '학습재개';
-                pauseIndicator.classList.remove('hidden');
-                pauseIndicator.style.animation = 'pauseFadeInOut 1s ease-out';
-                
-                setTimeout(() => {
-                    pauseIndicator.classList.add('hidden');
-                }, 1000);
             }
         }
+
         // 학습 모드 종료 - 진행상황 유지
         function exitStudyMode() {
             if (studyInterval) {
@@ -5872,10 +5716,6 @@ item.innerHTML = `
             }
             
             // 진행상황 저장 (진행상황을 유지하기 위해 초기화하지 않음)
-            // 섞인 배열 초기화
-            if (currentVocab) {
-                currentVocab.studyShuffledWords = null;
-            }
             saveProgress();
             displayChapters();
             autoSave();
@@ -5923,8 +5763,6 @@ item.innerHTML = `
             }
             
             document.getElementById('testMode').style.display = 'flex';
-            // 일시정지 버튼 초기화
-            document.getElementById('testPauseBtn').innerHTML = '||';
             updateTestStats();
             showCurrentTestQuestion();
         }
@@ -6022,11 +5860,8 @@ item.innerHTML = `
         // 테스트 일시정지
         function toggleTestPause() {
             isTestPaused = !isTestPaused;
-            const pauseBtn = document.getElementById('testPauseBtn');
             
             if (isTestPaused) {
-                // 일시정지 상태 - 재생 버튼(▶) 표시
-                pauseBtn.innerHTML = '▶';
                 if (testTimer) {
                     clearTimeout(testTimer);
                     testTimer = null;
@@ -6038,8 +5873,6 @@ item.innerHTML = `
                 speechSynthesis.cancel();
                 showFeedback('테스트가 일시정지되었습니다', 'warning');
             } else {
-                // 재개 상태 - 일시정지 버튼(||) 표시
-                pauseBtn.innerHTML = '||';
                 showFeedback('테스트를 재개합니다', 'success');
                 startTestTimer();
             }
@@ -6559,7 +6392,7 @@ item.innerHTML = `
                 
                 // 약한단어 권장 확인
                 checkWeakWordsRecommendation();
-            }, 3000); // 별 효과를 보기 위해 3초로 증가            
+            }, 3000); // 별 효과를 보기 위해 3초로 증가
         }
         // 새로운 별 효과 함수
         // 새로운 별 효과 함수
@@ -6753,8 +6586,6 @@ item.innerHTML = `
 
         // 테스트 모드 종료 - 진행상황 유지 (완료된 경우만 초기화)
         function exitTestMode() {
-            // 일시정지 버튼 초기화
-            document.getElementById('testPauseBtn').innerHTML = '||';
             // 타이머 정리
             if (testTimer) {
                 clearTimeout(testTimer);
@@ -7091,77 +6922,13 @@ item.innerHTML = `
 
         // 데이터 저장
         function saveData() {
-            // 임시 데이터 제거
-            Object.values(appData.vocabularies).forEach(vocab => {
-                if (vocab.studyShuffledWords) {
-                    delete vocab.studyShuffledWords;
-                }
-            });
-            
-            // 최적화된 데이터 구조 생성
-            const optimizedData = {
-                vocabularies: {},
-                currentVocabId: appData.currentVocabId,
-                userStars: appData.userStars,
-                purchasedVocabs: appData.purchasedVocabs || [],
-                globalMasteredWords: appData.globalMasteredWords || {},
-                globalSettings: appData.globalSettings,
-                version: 3,
+            const data = {
+                ...appData,
                 timestamp: new Date().toISOString()
             };
             
-            // 각 단어장 최적화
-            Object.entries(appData.vocabularies).forEach(([vocabId, vocab]) => {
-                // 학습한 단어만 필터링
-                const studiedWords = vocab.words.filter(word => 
-                    word.totalAttempts > 0 || 
-                    word.correctCount > 0 || 
-                    word.weakness > 0
-                );
-                
-                // 최적화된 단어장 구조
-                optimizedData.vocabularies[vocabId] = {
-                    id: vocab.id,
-                    name: vocab.name,
-                    createdAt: vocab.createdAt,
-                    lastStudiedAt: vocab.lastStudiedAt,
-                    totalStudyTime: vocab.totalStudyTime,
-                    studyStreak: vocab.studyStreak,
-                    lastStreakDate: vocab.lastStreakDate,
-                    // 학습한 단어만 저장
-                    studiedWords: studiedWords.map(word => ({
-                        id: word.id,
-                        word: word.word,
-                        weakness: word.weakness,
-                        correctCount: word.correctCount,
-                        totalAttempts: word.totalAttempts,
-                        consecutiveCorrect: word.consecutiveCorrect,
-                        lastCorrect: word.lastCorrect
-                    })),
-                    // 단어 개수 정보 저장
-                    totalWordCount: vocab.words.length,
-                    studiedWordCount: studiedWords.length,
-                    // 챕터 정보
-                    chapters: vocab.chapters.map(ch => ({
-                        id: ch.id,
-                        accuracy: ch.accuracy,
-                        stars: ch.stars,
-                        completedCount: ch.completedCount,
-                        perfectScore: ch.perfectScore
-                    })),
-                    statistics: vocab.statistics,
-                    settings: vocab.settings,
-                    weakWordsRecommendCount: vocab.weakWordsRecommendCount,
-                    studyProgress: vocab.studyProgress,
-                    testProgress: vocab.testProgress,
-                    price: vocab.price,
-                    // 원본 온라인 단어장 정보 저장
-                    sourceInfo: vocab.sourceInfo || null
-                };
-            });
-            
             // JSON 문자열로 변환
-            const jsonString = JSON.stringify(optimizedData, null, 2);
+            const jsonString = JSON.stringify(data, null, 2);
             
             // 파일 크기 계산
             const sizeKB = (jsonString.length / 1024).toFixed(2);
@@ -7535,18 +7302,13 @@ item.innerHTML = `
                 showFeedback('다운로드 중 오류가 발생했습니다', 'error');
             }
         }        
-
         async function processOnlineVocab(data) {
             const { vocabData, vocabName, vocabId, vocabPrice, isPurchased } = data;
             
-            // 온라인 단어장 정보 저장
-            currentVocab.sourceInfo = {
-                vocabId: vocabId,
-                vocabName: vocabName,
-                url: vocabData.url || vocabId,
-                version: vocabData.version || '1.0',
-                category: vocabData.category || 'general'
-            };
+            // 새 단어장인 경우 현재 단어장이 비어있으므로 바로 추가
+            if (!shouldMergeVocab && currentVocab.words.length === 0) {
+                // 기존 코드와 동일하게 진행
+            }
             
             let addedCount = 0;
             vocabData.words.forEach(word => {
@@ -7603,6 +7365,7 @@ item.innerHTML = `
                 showFeedback('이미 모든 단어가 추가되어 있습니다', 'warning');
             }
         }
+
         function confirmVocabMerge(merge) {
             shouldMergeVocab = merge;
             document.getElementById('vocabMergeModal').style.display = 'none';
