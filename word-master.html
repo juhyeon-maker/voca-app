@@ -5378,62 +5378,11 @@ item.innerHTML = `
             
             // 기존 내용 및 이벤트 리스너 제거
             chapterList.innerHTML = '';
-            chapterList.onscroll = null; // 기존 스크롤 이벤트 제거
+            chapterList.onscroll = null;
+            chapterList.style.height = ''; // 높이 초기화
+            chapterList.style.overflow = ''; // 오버플로우 초기화
             
-            // 한 번에 표시할 챕터 수
-            const VISIBLE_CHAPTERS = 20;
             const totalChapters = currentVocab.chapters.length;
-            let visibleStart = 0;
-            let visibleEnd = Math.min(VISIBLE_CHAPTERS, totalChapters);
-            
-            // 챕터 컨테이너 생성
-            const chaptersContainer = document.createElement('div');
-            chaptersContainer.style.cssText = 'position: relative;';
-            
-            // 가상 높이를 위한 스페이서
-            const spacerTop = document.createElement('div');
-            const spacerBottom = document.createElement('div');
-            
-            // 챕터 높이 추정 (모바일/데스크톱 구분)
-            const isMobile = window.innerWidth <= 768;
-            const CHAPTER_HEIGHT = isMobile ? 150 : 180;
-            
-            // 스크롤 이벤트 핸들러
-            let scrollTimeout;
-            const handleScroll = () => {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    const scrollTop = chapterList.scrollTop;
-                    const newStart = Math.floor(scrollTop / CHAPTER_HEIGHT);
-                    const newEnd = Math.min(newStart + VISIBLE_CHAPTERS, totalChapters);
-                    
-                    if (newStart !== visibleStart || newEnd !== visibleEnd) {
-                        visibleStart = Math.max(0, newStart - 5); // 버퍼 추가
-                        visibleEnd = Math.min(newEnd + 5, totalChapters);
-                        renderVisibleChapters();
-                    }
-                }, 50);
-            };
-            
-            // 보이는 챕터만 렌더링
-            const renderVisibleChapters = () => {
-                // 기존 챕터 카드 제거
-                chaptersContainer.innerHTML = '';
-                
-                // 상단 스페이서 높이 설정
-                spacerTop.style.height = `${visibleStart * CHAPTER_HEIGHT}px`;
-                
-                // 보이는 챕터만 생성
-                for (let index = visibleStart; index < visibleEnd; index++) {
-                    const chapter = currentVocab.chapters[index];
-                    const chapterCard = createChapterCard(chapter, index);
-                    chaptersContainer.appendChild(chapterCard);
-                }
-                
-                // 하단 스페이서 높이 설정
-                const remainingChapters = totalChapters - visibleEnd;
-                spacerBottom.style.height = `${remainingChapters * CHAPTER_HEIGHT}px`;
-            };
             
             // 챕터 카드 생성 함수
             const createChapterCard = (chapter, index) => {
@@ -5452,10 +5401,8 @@ item.innerHTML = `
                     starsDisplay = stars || '☆☆☆';
                 }
                 
-                // 챕터의 단어들 가져오기
                 const chapterWords = getChapterWords(chapter);
                 
-                // 진행률 계산
                 let masteredWords = 0;
                 let recentCorrectWords = 0;
                 
@@ -5490,29 +5437,74 @@ item.innerHTML = `
                 return chapterCard;
             };
             
-            // 대용량 챕터 처리
-            if (totalChapters > 100) {
-                // 가상 스크롤링 사용
-                chapterList.style.cssText = 'overflow-y: auto; max-height: calc(100vh - 300px);';
-                chapterList.appendChild(spacerTop);
-                chapterList.appendChild(chaptersContainer);
-                chapterList.appendChild(spacerBottom);
-                
-                // 스크롤 이벤트 리스너 추가 (중복 방지)
-                chapterList.addEventListener('scroll', handleScroll, { passive: true });
-                
-                // 초기 렌더링
-                renderVisibleChapters();
-                
-                // 전체 높이 설정
-                const totalHeight = totalChapters * CHAPTER_HEIGHT;
-                chapterList.style.height = `${Math.min(totalHeight, window.innerHeight - 300)}px`;
-            } else {
-                // 100개 이하는 기존 방식
+            // 100개 이하는 일반 렌더링
+            if (totalChapters <= 100) {
                 currentVocab.chapters.forEach((chapter, index) => {
                     const chapterCard = createChapterCard(chapter, index);
                     chapterList.appendChild(chapterCard);
                 });
+            } else {
+                // 100개 초과시 가상 스크롤링
+                const VISIBLE_CHAPTERS = 20;
+                const CHAPTER_HEIGHT = window.innerWidth <= 768 ? 150 : 180;
+                
+                // 컨테이너 높이 설정
+                chapterList.style.height = `${Math.min(totalChapters * CHAPTER_HEIGHT, window.innerHeight - 300)}px`;
+                chapterList.style.overflowY = 'auto';
+                chapterList.style.position = 'relative';
+                
+                // 전체 높이를 가진 컨테이너
+                const scrollContainer = document.createElement('div');
+                scrollContainer.style.height = `${totalChapters * CHAPTER_HEIGHT}px`;
+                scrollContainer.style.position = 'relative';
+                
+                // 보이는 챕터들을 담을 컨테이너
+                const visibleContainer = document.createElement('div');
+                visibleContainer.style.position = 'absolute';
+                visibleContainer.style.top = '0';
+                visibleContainer.style.left = '0';
+                visibleContainer.style.right = '0';
+                
+                scrollContainer.appendChild(visibleContainer);
+                chapterList.appendChild(scrollContainer);
+                
+                let currentStart = 0;
+                let currentEnd = Math.min(VISIBLE_CHAPTERS, totalChapters);
+                
+                // 렌더링 함수
+                const renderVisibleChapters = () => {
+                    visibleContainer.innerHTML = '';
+                    
+                    for (let i = currentStart; i < currentEnd; i++) {
+                        const chapter = currentVocab.chapters[i];
+                        const chapterCard = createChapterCard(chapter, i);
+                        chapterCard.style.position = 'absolute';
+                        chapterCard.style.top = `${i * CHAPTER_HEIGHT}px`;
+                        chapterCard.style.left = '0';
+                        chapterCard.style.right = '0';
+                        visibleContainer.appendChild(chapterCard);
+                    }
+                };
+                
+                // 스크롤 이벤트
+                let scrollTimeout;
+                chapterList.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        const scrollTop = chapterList.scrollTop;
+                        const newStart = Math.max(0, Math.floor(scrollTop / CHAPTER_HEIGHT) - 5);
+                        const newEnd = Math.min(totalChapters, newStart + VISIBLE_CHAPTERS + 10);
+                        
+                        if (newStart !== currentStart || newEnd !== currentEnd) {
+                            currentStart = newStart;
+                            currentEnd = newEnd;
+                            renderVisibleChapters();
+                        }
+                    }, 50);
+                }, { passive: true });
+                
+                // 초기 렌더링
+                renderVisibleChapters();
             }
         }
 
