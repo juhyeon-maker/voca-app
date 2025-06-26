@@ -4682,12 +4682,13 @@ item.innerHTML = `
         }
 
         // 백업 파일 업로드 처리
+// 백업 파일 업로드 처리
         function handleBackupUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
                     
@@ -4696,15 +4697,8 @@ item.innerHTML = `
                     if (isTestMode) exitTestMode();
                     
                     if (data.version === 3) {
-                        // 새 버전 직접 로드
-                        appData = data;
-                        
-                        // 현재 단어장 재설정
-                        if (appData.currentVocabId && appData.vocabularies[appData.currentVocabId]) {
-                            currentVocab = appData.vocabularies[appData.currentVocabId];
-                        } else {
-                            currentVocab = null;
-                        }
+                        // 최적화된 데이터 복원
+                        await restoreOptimizedData(data);
                     } else if (data.version === 2) {
                         // 버전 2 마이그레이션
                         migrateV2Data(data);
@@ -4736,7 +4730,115 @@ item.innerHTML = `
             // 입력 초기화
             event.target.value = '';
         }
-
+        
+        // 최적화된 데이터 복원 함수 추가
+        async function restoreOptimizedData(data) {
+            // 기본 데이터 복원
+            appData.currentVocabId = data.currentVocabId;
+            appData.userStars = data.userStars || 1000;
+            appData.purchasedVocabs = data.purchasedVocabs || [];
+            appData.globalMasteredWords = data.globalMasteredWords || {};
+            appData.globalSettings = data.globalSettings || appData.globalSettings;
+            
+            // 단어장 복원
+            appData.vocabularies = {};
+            
+            for (const [vocabId, vocabData] of Object.entries(data.vocabularies)) {
+                const restoredVocab = new Vocabulary(vocabData.name);
+                restoredVocab.id = vocabData.id;
+                restoredVocab.createdAt = vocabData.createdAt;
+                restoredVocab.lastStudiedAt = vocabData.lastStudiedAt;
+                restoredVocab.totalStudyTime = vocabData.totalStudyTime || 0;
+                restoredVocab.studyStreak = vocabData.studyStreak || 0;
+                restoredVocab.lastStreakDate = vocabData.lastStreakDate;
+                restoredVocab.statistics = vocabData.statistics || { totalCorrect: 0, totalAttempts: 0 };
+                restoredVocab.settings = vocabData.settings || { chapterSize: 10 };
+                restoredVocab.weakWordsRecommendCount = vocabData.weakWordsRecommendCount || 0;
+                restoredVocab.studyProgress = vocabData.studyProgress || { chapterIndex: -1, cardIndex: 0 };
+                restoredVocab.testProgress = vocabData.testProgress || { chapterIndex: -1, currentIndex: 0, answers: [], questions: [] };
+                restoredVocab.price = vocabData.price || 0;
+                restoredVocab.sourceInfo = vocabData.sourceInfo || null;
+                
+                // 온라인 단어장이면 재다운로드 시도
+                if (vocabData.sourceInfo) {
+                    showFeedback(`📥 '${vocabData.name}' 단어장을 복원 중...`, 'warning');
+                    
+                    try {
+                        // 온라인에서 단어 데이터 다시 가져오기
+                        const vocabUrl = `vocabularies/${vocabData.sourceInfo.vocabId}.json`;
+                        const response = await fetch(`${GITHUB_VOCAB_STORE_URL}/${vocabUrl}`);
+                        
+                        if (response.ok) {
+                            const onlineData = await response.json();
+                            
+                            // 전체 단어 복원
+                            restoredVocab.words = onlineData.words.map(word => {
+                                const wordId = `${onlineData.id}_${word.word}_${Date.now()}_${Math.random()}`;
+                                
+                                // 학습 기록이 있는 단어 찾기
+                                const studiedWord = vocabData.studiedWords.find(sw => sw.word === word.word);
+                                
+                                return {
+                                    id: wordId,
+                                    word: word.word,
+                                    pronunciation: word.pronunciation || '',
+                                    meaning: word.meaning,
+                                    example: word.example || '',
+                                    exampleMeaning: word.exampleMeaning || '',
+                                    weakness: studiedWord ? studiedWord.weakness : 0,
+                                    correctCount: studiedWord ? studiedWord.correctCount : 0,
+                                    totalAttempts: studiedWord ? studiedWord.totalAttempts : 0,
+                                    consecutiveCorrect: studiedWord ? studiedWord.consecutiveCorrect : 0,
+                                    lastCorrect: studiedWord ? studiedWord.lastCorrect : false,
+                                    source: vocabData.name
+                                };
+                            });
+                            
+                            showFeedback(`✅ '${vocabData.name}' 단어장 복원 완료!`, 'success');
+                        } else {
+                            throw new Error('온라인 단어장을 찾을 수 없습니다');
+                        }
+                    } catch (error) {
+                        console.error('온라인 단어장 복원 실패:', error);
+                        // 학습한 단어만이라도 복원
+                        restoredVocab.words = vocabData.studiedWords || [];
+                        showFeedback(`⚠️ '${vocabData.name}' 온라인 복원 실패. 학습 기록만 복원됨`, 'warning');
+                    }
+                } else {
+                    // 로컬 단어장은 학습한 단어만 복원
+                    restoredVocab.words = vocabData.studiedWords || [];
+                }
+                
+                // 챕터 재생성
+                if (restoredVocab.words.length > 0) {
+                    currentVocab = restoredVocab;
+                    await createChapters();
+                    
+                    // 챕터 진행상황 복원
+                    if (vocabData.chapters) {
+                        vocabData.chapters.forEach(savedChapter => {
+                            const chapter = restoredVocab.chapters.find(ch => ch.id === savedChapter.id);
+                            if (chapter) {
+                                chapter.accuracy = savedChapter.accuracy || 0;
+                                chapter.stars = savedChapter.stars || 0;
+                                chapter.completedCount = savedChapter.completedCount || 0;
+                                chapter.perfectScore = savedChapter.perfectScore || false;
+                            }
+                        });
+                    }
+                }
+                
+                appData.vocabularies[vocabId] = restoredVocab;
+            }
+            
+            // 현재 단어장 설정
+            if (appData.currentVocabId && appData.vocabularies[appData.currentVocabId]) {
+                currentVocab = appData.vocabularies[appData.currentVocabId];
+            } else {
+                currentVocab = null;
+            }
+        }
+        
         // V2 데이터 마이그레이션 - 개선된 버전
         function migrateV2Data(v2Data) {
             // 기본 단어장 생성
@@ -6922,13 +7024,70 @@ item.innerHTML = `
 
         // 데이터 저장
         function saveData() {
-            const data = {
-                ...appData,
+            // 최적화된 데이터 구조 생성
+            const optimizedData = {
+                vocabularies: {},
+                currentVocabId: appData.currentVocabId,
+                userStars: appData.userStars,
+                purchasedVocabs: appData.purchasedVocabs || [],
+                globalMasteredWords: appData.globalMasteredWords || {},
+                globalSettings: appData.globalSettings,
+                version: 3,
                 timestamp: new Date().toISOString()
             };
             
+            // 각 단어장 최적화
+            Object.entries(appData.vocabularies).forEach(([vocabId, vocab]) => {
+                // 학습한 단어만 필터링
+                const studiedWords = vocab.words.filter(word => 
+                    word.totalAttempts > 0 || 
+                    word.correctCount > 0 || 
+                    word.weakness > 0
+                );
+                
+                // 최적화된 단어장 구조
+                optimizedData.vocabularies[vocabId] = {
+                    id: vocab.id,
+                    name: vocab.name,
+                    createdAt: vocab.createdAt,
+                    lastStudiedAt: vocab.lastStudiedAt,
+                    totalStudyTime: vocab.totalStudyTime,
+                    studyStreak: vocab.studyStreak,
+                    lastStreakDate: vocab.lastStreakDate,
+                    // 학습한 단어만 저장
+                    studiedWords: studiedWords.map(word => ({
+                        id: word.id,
+                        word: word.word,
+                        weakness: word.weakness,
+                        correctCount: word.correctCount,
+                        totalAttempts: word.totalAttempts,
+                        consecutiveCorrect: word.consecutiveCorrect,
+                        lastCorrect: word.lastCorrect
+                    })),
+                    // 단어 개수 정보 저장
+                    totalWordCount: vocab.words.length,
+                    studiedWordCount: studiedWords.length,
+                    // 챕터 정보
+                    chapters: vocab.chapters.map(ch => ({
+                        id: ch.id,
+                        accuracy: ch.accuracy,
+                        stars: ch.stars,
+                        completedCount: ch.completedCount,
+                        perfectScore: ch.perfectScore
+                    })),
+                    statistics: vocab.statistics,
+                    settings: vocab.settings,
+                    weakWordsRecommendCount: vocab.weakWordsRecommendCount,
+                    studyProgress: vocab.studyProgress,
+                    testProgress: vocab.testProgress,
+                    price: vocab.price,
+                    // 원본 온라인 단어장 정보 저장
+                    sourceInfo: vocab.sourceInfo || null
+                };
+            });
+            
             // JSON 문자열로 변환
-            const jsonString = JSON.stringify(data, null, 2);
+            const jsonString = JSON.stringify(optimizedData, null, 2);
             
             // 파일 크기 계산
             const sizeKB = (jsonString.length / 1024).toFixed(2);
@@ -7302,13 +7461,18 @@ item.innerHTML = `
                 showFeedback('다운로드 중 오류가 발생했습니다', 'error');
             }
         }        
+
         async function processOnlineVocab(data) {
             const { vocabData, vocabName, vocabId, vocabPrice, isPurchased } = data;
             
-            // 새 단어장인 경우 현재 단어장이 비어있으므로 바로 추가
-            if (!shouldMergeVocab && currentVocab.words.length === 0) {
-                // 기존 코드와 동일하게 진행
-            }
+            // 온라인 단어장 정보 저장
+            currentVocab.sourceInfo = {
+                vocabId: vocabId,
+                vocabName: vocabName,
+                url: vocabData.url || vocabId,
+                version: vocabData.version || '1.0',
+                category: vocabData.category || 'general'
+            };
             
             let addedCount = 0;
             vocabData.words.forEach(word => {
@@ -7365,7 +7529,6 @@ item.innerHTML = `
                 showFeedback('이미 모든 단어가 추가되어 있습니다', 'warning');
             }
         }
-
         function confirmVocabMerge(merge) {
             shouldMergeVocab = merge;
             document.getElementById('vocabMergeModal').style.display = 'none';
