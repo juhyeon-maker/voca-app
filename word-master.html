@@ -4206,12 +4206,7 @@ item.innerHTML = `
         
         // 데이터 자동 저장 (동기화 포함)
         async function autoSave() {
-            try {
-                // 임시 데이터 제거 (저장 크기 최적화)
-                if (currentVocab && currentVocab.studyShuffledWords) {
-                    delete currentVocab.studyShuffledWords;
-                }
-        
+            try {        
                 const dataStr = JSON.stringify(appData);                
                 // 크기 체크
                 const sizeInMB = dataStr.length / (1024 * 1024);
@@ -5661,16 +5656,9 @@ item.innerHTML = `
             if (currentVocab.studyProgress.chapterIndex !== chapterIndex) {
                 currentVocab.studyProgress = { chapterIndex: chapterIndex, cardIndex: 0 };
                 currentStudyIndex = 0;
-                // 섞인 배열도 초기화
-                currentVocab.studyShuffledWords = null;
             } else {
                 // 같은 챕터면 이어서 진행
                 currentStudyIndex = currentVocab.studyProgress.cardIndex || 0;
-                // 이어서 진행하는 경우에도 섞인 배열이 없으면 초기화
-                if (!currentVocab.studyShuffledWords) {
-                    currentStudyIndex = 0;
-                    currentVocab.studyProgress.cardIndex = 0;
-                }
             }
             
             currentChapter = chapterIndex;
@@ -5695,24 +5683,13 @@ item.innerHTML = `
             const chapterWords = getChapterWords(chapter);
             if (chapterWords.length === 0) return;
             
-            // 학습 시작 시 한 번만 단어 순서 섞기
-            if (!currentVocab.studyShuffledWords || currentVocab.studyShuffledWords.length !== chapterWords.length) {
-                // 단어 배열 복사 후 섞기
-                currentVocab.studyShuffledWords = [...chapterWords];
-                for (let i = currentVocab.studyShuffledWords.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [currentVocab.studyShuffledWords[i], currentVocab.studyShuffledWords[j]] = 
-                    [currentVocab.studyShuffledWords[j], currentVocab.studyShuffledWords[i]];
-                }
-            }
-            
             // 인덱스 범위 체크
-            if (currentStudyIndex >= currentVocab.studyShuffledWords.length) {
+            if (currentStudyIndex >= chapterWords.length) {
                 currentStudyIndex = 0;
             }
             
-            // 섞인 배열에서 단어 가져오기
-            const word = currentVocab.studyShuffledWords[currentStudyIndex];            
+            // 원래 순서대로 단어 가져오기
+            const word = chapterWords[currentStudyIndex];
             document.getElementById('studyWordText').textContent = word.word;
             document.getElementById('studyWordPronunciation').textContent = word.pronunciation ? `[${word.pronunciation}]` : '';
             document.getElementById('studyWordMeaning').textContent = word.meaning;
@@ -5761,7 +5738,7 @@ item.innerHTML = `
             // 다음 카드 프리로드
             if (appData.globalSettings.ttsPreload > 0) {
                 const nextIndex = (currentStudyIndex + 1) % chapterWords.length;
-                const nextWord = currentVocab.studyShuffledWords[nextIndex];
+                const nextWord = chapterWords[nextIndex];
                 if (nextWord && selectedVoice) {
                     let nextText = '';
                     
@@ -5872,10 +5849,7 @@ item.innerHTML = `
             }
             
             // 진행상황 저장 (진행상황을 유지하기 위해 초기화하지 않음)
-            // 섞인 배열 초기화
-            if (currentVocab) {
-                currentVocab.studyShuffledWords = null;
-            }
+
             saveProgress();
             displayChapters();
             autoSave();
@@ -6876,7 +6850,7 @@ item.innerHTML = `
                         };
                         appData.userStars += 2;
                         
-                        showFeedback(`🌟 새 단어 마스터! +2 별 획득!`, 'success');
+                        showFeedback(`새 단어 마스터! 🌟+2`, 'success');
                     }
                 }
             });
@@ -7091,12 +7065,6 @@ item.innerHTML = `
 
         // 데이터 저장
         function saveData() {
-            // 임시 데이터 제거
-            Object.values(appData.vocabularies).forEach(vocab => {
-                if (vocab.studyShuffledWords) {
-                    delete vocab.studyShuffledWords;
-                }
-            });
             
             // 최적화된 데이터 구조 생성
             const optimizedData = {
