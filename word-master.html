@@ -3226,7 +3226,8 @@
                 this.weakWordsRecommendCount = 0;
                 this.studyProgress = {
                     chapterIndex: -1,
-                    cardIndex: 0
+                    cardIndex: 0,
+                    questions: []
                 };
                 this.testProgress = {
                     chapterIndex: -1,
@@ -3250,6 +3251,7 @@
         let isStudyMode = false;
         let isTestMode = false;
         let testQuestions = [];
+        let studyQuestions = [];
         let testAnswers = [];
         let availableVoices = [];
         let selectedVoice = null;
@@ -3699,6 +3701,7 @@ item.innerHTML = `
             }
         }
         // 학습 진행상황 복원
+        // 학습 진행상황 복원
         function resumeStudy() {
             const progress = currentVocab.studyProgress;
             const chapter = currentVocab.chapters[progress.chapterIndex];
@@ -3706,8 +3709,7 @@ item.innerHTML = `
             if (!chapter) {
                 console.error('복원할 챕터를 찾을 수 없습니다');
                 // 진행상황 초기화
-                currentVocab.studyProgress = { chapterIndex: -1, cardIndex: 0 };
-                currentVocab.studyShuffledWords = null;
+                currentVocab.studyProgress = { chapterIndex: -1, cardIndex: 0, questions: [] };
                 autoSave();
                 return;
             }
@@ -3716,18 +3718,16 @@ item.innerHTML = `
             if (progress.cardIndex >= chapterWords.length) {
                 console.error('진행상황이 유효하지 않습니다');
                 // 진행상황 초기화
-                currentVocab.studyProgress = { chapterIndex: -1, cardIndex: 0 };
-                currentVocab.studyShuffledWords = null;
+                currentVocab.studyProgress = { chapterIndex: -1, cardIndex: 0, questions: [] };
                 autoSave();
                 return;
             }
             
             // 섞인 배열이 없으면 복원 불가
-            if (!currentVocab.studyShuffledWords || currentVocab.studyShuffledWords.length !== chapterWords.length) {
+            if (!progress.questions || progress.questions.length === 0) {
                 console.error('섞인 단어 배열이 유효하지 않습니다');
                 // 진행상황 초기화
-                currentVocab.studyProgress = { chapterIndex: -1, cardIndex: 0 };
-                currentVocab.studyShuffledWords = null;
+                currentVocab.studyProgress = { chapterIndex: -1, cardIndex: 0, questions: [] };
                 autoSave();
                 return;
             }
@@ -3735,8 +3735,9 @@ item.innerHTML = `
             // 학습 상태 복원
             currentChapter = progress.chapterIndex;
             currentStudyIndex = progress.cardIndex;
+            studyQuestions = [...progress.questions];
             
-            console.log(`학습 복원: 챕터 ${currentChapter + 1}, 카드 ${currentStudyIndex + 1}/${chapterWords.length}`);
+            console.log(`학습 복원: 챕터 ${currentChapter + 1}, 카드 ${currentStudyIndex + 1}/${studyQuestions.length}`);
             
             // 학습 모드 시작
             isStudyMode = true;
@@ -4361,7 +4362,8 @@ item.innerHTML = `
             if (isStudyMode) {
                 currentVocab.studyProgress = {
                     chapterIndex: currentChapter,
-                    cardIndex: currentStudyIndex
+                    cardIndex: currentStudyIndex,
+                    questions: [...studyQuestions]
                 };
                 console.log(`학습 진행상황 저장: 챕터 ${currentChapter}, 카드 ${currentStudyIndex}`);
             } else if (isTestMode) {
@@ -5654,11 +5656,30 @@ item.innerHTML = `
             
             // 기존 진행상황이 다른 챕터면 초기화
             if (currentVocab.studyProgress.chapterIndex !== chapterIndex) {
-                currentVocab.studyProgress = { chapterIndex: chapterIndex, cardIndex: 0 };
+                currentVocab.studyProgress = { chapterIndex: chapterIndex, cardIndex: 0, questions: [] };
                 currentStudyIndex = 0;
+                
+                // 새로운 학습 세션 - 단어 섞기
+                const chapter = currentVocab.chapters[chapterIndex];
+                const chapterWords = getChapterWords(chapter);
+                studyQuestions = [...chapterWords];
+                shuffleArray(studyQuestions);
+                
+                // 진행상황에 섞인 순서 저장
+                currentVocab.studyProgress.questions = [...studyQuestions];
             } else {
                 // 같은 챕터면 이어서 진행
                 currentStudyIndex = currentVocab.studyProgress.cardIndex || 0;
+                studyQuestions = [...currentVocab.studyProgress.questions];
+                
+                // questions가 비어있으면 새로 생성
+                if (!studyQuestions || studyQuestions.length === 0) {
+                    const chapter = currentVocab.chapters[chapterIndex];
+                    const chapterWords = getChapterWords(chapter);
+                    studyQuestions = [...chapterWords];
+                    shuffleArray(studyQuestions);
+                    currentVocab.studyProgress.questions = [...studyQuestions];
+                }
             }
             
             currentChapter = chapterIndex;
@@ -5680,16 +5701,15 @@ item.innerHTML = `
             const chapter = currentVocab.chapters[currentChapter];
             if (!chapter) return;
             
-            const chapterWords = getChapterWords(chapter);
-            if (chapterWords.length === 0) return;
+            if (!studyQuestions || studyQuestions.length === 0) return;
             
             // 인덱스 범위 체크
-            if (currentStudyIndex >= chapterWords.length) {
+            if (currentStudyIndex >= studyQuestions.length) {
                 currentStudyIndex = 0;
             }
             
-            // 원래 순서대로 단어 가져오기
-            const word = chapterWords[currentStudyIndex];
+            // 섞인 순서대로 단어 가져오기
+            const word = studyQuestions[currentStudyIndex];
             document.getElementById('studyWordText').textContent = word.word;
             document.getElementById('studyWordPronunciation').textContent = word.pronunciation ? `[${word.pronunciation}]` : '';
             document.getElementById('studyWordMeaning').textContent = word.meaning;
@@ -5714,9 +5734,9 @@ item.innerHTML = `
             updateStudyCardVisibility();
             
             // 진행률 업데이트
-            const progress = ((currentStudyIndex + 1) / chapterWords.length) * 100;
-            document.getElementById('studyProgress').style.width = progress + '%';
-            
+            const progress = ((currentStudyIndex + 1) / studyQuestions.length) * 100;
+            document.getElementById('studyProgress').style.width = progress + '%';            
+
             // TTS 재생
             if (selectedVoice) {
                 let textToSpeak = '';
@@ -5737,8 +5757,8 @@ item.innerHTML = `
             
             // 다음 카드 프리로드
             if (appData.globalSettings.ttsPreload > 0) {
-                const nextIndex = (currentStudyIndex + 1) % chapterWords.length;
-                const nextWord = chapterWords[nextIndex];
+                const nextIndex = (currentStudyIndex + 1) % studyQuestions.length;
+                const nextWord = studyQuestions[nextIndex];
                 if (nextWord && selectedVoice) {
                     let nextText = '';
                     
@@ -5777,15 +5797,12 @@ item.innerHTML = `
             const chapter = currentVocab.chapters[currentChapter];
             if (!chapter) return;
             
-            const chapterWords = getChapterWords(chapter);
             currentStudyIndex++;
             
             // 한 바퀴 돌았을 때
-            if (currentStudyIndex >= chapterWords.length) {
+            if (currentStudyIndex >= studyQuestions.length) {
                 currentStudyIndex = 0;
                 currentVocab.chapters[currentChapter].completedCount++;
-                // 섞인 배열 초기화 제거 - 한 세션 동안 같은 순서 유지
-                // currentVocab.studyShuffledWords = null;  // 이 줄을 주석처리 또는 삭제
                 autoSave();
             }
             
@@ -5793,7 +5810,7 @@ item.innerHTML = `
             currentVocab.studyProgress.cardIndex = currentStudyIndex;
             
             showCurrentStudyCard();
-        }        
+        }
         
         // 학습 일시정지/재개
         function toggleStudyPause() {
@@ -5848,8 +5865,10 @@ item.innerHTML = `
                 studyStartTime = null;
             }
             
-            // 진행상황 저장 (진행상황을 유지하기 위해 초기화하지 않음)
-
+            // 학습이 완료되지 않은 경우 진행상황 유지
+            if (currentStudyIndex < studyQuestions.length) {
+                currentVocab.studyProgress.questions = [...studyQuestions];
+            }
             saveProgress();
             displayChapters();
             autoSave();
@@ -6989,6 +7008,11 @@ item.innerHTML = `
             console.log(`집중학습 챕터 생성 완료: ${chapterWords.length}개 단어`);
             
             currentStudyIndex = 0;
+            
+            // 집중학습을 위한 단어 섞기
+            studyQuestions = [...chapterWords];
+            shuffleArray(studyQuestions);
+            
             startStudy(currentVocab.chapters.length - 1);
         }
 
