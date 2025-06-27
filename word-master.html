@@ -2169,47 +2169,61 @@
         /* 피드백 */
         .feedback {
             position: fixed;
-            top: 50%;
+            top: -100px;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            padding: 24px 48px;
-            border-radius: 16px;
-            font-size: 20px;
+            transform: translateX(-50%);
+            padding: 16px 32px;
+            border-radius: 0 0 20px 20px;
+            font-size: 16px;
             font-weight: 600;
             text-align: center;
-            z-index: 3000;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            display: none;
+            z-index: 4000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            min-width: 280px;
+            backdrop-filter: blur(10px);
         }
 
         .feedback.show {
-            display: block;
-            animation: feedbackShow 0.5s ease forwards;
-        }
-
-        @keyframes feedbackShow {
-            0% { transform: translate(-50%, -50%) scale(0) rotate(-180deg); }
-            50% { transform: translate(-50%, -50%) scale(1.1) rotate(90deg); }
-            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+            top: 0;
         }
 
         .feedback.success {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
             color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .feedback.error {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95));
             color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .feedback.warning {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
             color: white;
-            font-size: 18px;
-            padding: 20px 40px;
+            font-size: 16px;
+            padding: 16px 32px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        /* 마스터 피드백 특별 스타일 */
+        .feedback.master {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.95), rgba(245, 158, 11, 0.95));
+            color: white;
+            font-size: 18px;
+            animation: masterGlow 2s ease-in-out;
+        }
+
+        @keyframes masterGlow {
+            0%, 100% { 
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            }
+            50% { 
+                box-shadow: 0 10px 40px rgba(251, 191, 36, 0.6);
+            }
+        }
 
         /* 별 날아오는 애니메이션 */
         .flying-star {
@@ -6869,7 +6883,7 @@ item.innerHTML = `
                         };
                         appData.userStars += 2;
                         
-                        showFeedback(`새 단어 마스터! 🌟+2`, 'success');
+                        showFeedback(`✨ 새 단어 마스터! ⭐+2`, 'master');
                     }
                 }
             });
@@ -7636,24 +7650,34 @@ item.innerHTML = `
         }
         function showFeedback(message, type) {
             const feedback = document.getElementById('feedback');
-            feedback.textContent = message;
-            feedback.className = `feedback ${type} show`;
             
-            setTimeout(() => {
+            // 기존 피드백이 표시중이면 즉시 숨기기
+            if (feedback.classList.contains('show')) {
                 feedback.classList.remove('show');
-            }, type === 'warning' ? 3000 : 2000);
-        }
-
-        // 전체화면 토글
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.error('전체화면 전환 실패:', err);
-                });
+                setTimeout(() => {
+                    displayNewFeedback();
+                }, 100);
             } else {
-                document.exitFullscreen().catch(err => {
-                    console.error('전체화면 종료 실패:', err);
-                });
+                displayNewFeedback();
+            }
+            
+            function displayNewFeedback() {
+                feedback.textContent = message;
+                feedback.className = `feedback ${type}`;
+                
+                // 강제 리플로우로 애니메이션 재시작
+                void feedback.offsetWidth;
+                
+                feedback.classList.add('show');
+                
+                // 타입별 표시 시간 설정
+                let duration = 2000;
+                if (type === 'warning') duration = 3000;
+                if (type === 'master') duration = 2500;
+                
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, duration);
             }
         }
 
