@@ -5566,14 +5566,14 @@ item.innerHTML = `
                 return chapterCard;
             };
             
-            // 100개 이하는 일반 렌더링
-            if (totalChapters <= 100) {
+            // 1000개 이하는 일반 렌더링
+            if (totalChapters <= 1000) {
                 currentVocab.chapters.forEach((chapter, index) => {
                     const chapterCard = createChapterCard(chapter, index);
                     chapterList.appendChild(chapterCard);
                 });
             } else {
-                // 100개 초과시 가상 스크롤링
+                // 1000개 초과시 가상 스크롤링
                 const VISIBLE_CHAPTERS = 20;
                 const CHAPTER_HEIGHT = window.innerWidth <= 768 ? 150 : 180;
                 
@@ -6048,7 +6048,28 @@ item.innerHTML = `
                 // 재개 상태 - 일시정지 버튼(||) 표시
                 pauseBtn.innerHTML = '||';
                 showFeedback('테스트를 재개합니다', 'success');
-                startTestTimer();
+                
+                // 이미 답을 선택한 상태인지 확인
+                const hasAnswered = testAnswers.length > currentTestIndex;
+                
+                // 아직 답을 선택하지 않았다면 버튼 다시 활성화
+                if (!hasAnswered) {
+                    document.querySelectorAll('.option-btn').forEach(btn => {
+                        if (!btn.classList.contains('correct') && !btn.classList.contains('incorrect')) {
+                            btn.style.pointerEvents = 'auto';
+                        }
+                    });
+                    document.querySelector('.dont-know-btn').style.pointerEvents = 'auto';
+                    startTestTimer();
+                } else {
+                    // 이미 답을 선택했다면 다음 문제로 넘어가는 타이머만 재시작
+                    const isCorrect = testAnswers[currentTestIndex].correct;
+                    setTimeout(() => {
+                        if (isTestMode && !isTestPaused) {
+                            nextTestQuestion();
+                        }
+                    }, isCorrect ? 1500 : 3000);
+                }
             }
         }
 
@@ -6072,6 +6093,9 @@ item.innerHTML = `
             
             // 카드 초기화
             document.getElementById('questionCard').className = 'question-card';
+
+            // 모르겠어요 버튼 활성화 (새 문제 시작 시)
+            document.querySelector('.dont-know-btn').style.pointerEvents = 'auto';
             
             // 문제 표시
             document.getElementById('questionWord').textContent = question.word;
@@ -6245,6 +6269,9 @@ item.innerHTML = `
                     btn.classList.add('incorrect');
                 }
             });
+
+            // 모르겠어요 버튼도 비활성화
+            document.querySelector('.dont-know-btn').style.pointerEvents = 'none';
             
             // 카드 배경색 변경
             const questionCard = document.getElementById('questionCard');
@@ -6457,6 +6484,9 @@ item.innerHTML = `
                     createParticles(btn);
                 }
             });
+
+            // 모르겠어요 버튼도 비활성화
+            document.querySelector('.dont-know-btn').style.pointerEvents = 'none';
             
             // 카드 배경색 변경
             document.getElementById('questionCard').classList.add('incorrect');
