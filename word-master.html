@@ -6884,6 +6884,9 @@ item.innerHTML = `
                 questions: []
             };
             
+            // 즉시 저장하여 진행상황 초기화 확실히 반영
+            autoSave();
+            
             // 새로운 별 효과 표시
             showStarEffect(accuracy);
             
@@ -7110,7 +7113,7 @@ item.innerHTML = `
             document.getElementById('timerFill').style.width = '100%';
             
             // 테스트가 완료되지 않은 경우 진행상황 유지
-            if (currentTestIndex < testQuestions.length) {
+            if (currentTestIndex < testQuestions.length && currentVocab.testProgress.chapterIndex >= 0) {
                 saveProgress();
             }
             
