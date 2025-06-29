@@ -3458,6 +3458,30 @@
         </div>
     </div>
 
+    <!-- 일일 스트릭 모달 -->
+    <div class="modal" id="dailyStreakModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3 style="text-align: center; font-size: 28px; margin-bottom: 24px;">
+                <span id="streakEmoji" style="font-size: 48px;">🔥</span>
+            </h3>
+            <h3 id="streakTitle" style="text-align: center; margin-bottom: 16px;">연속 학습 중!</h3>
+            <p id="streakMessage" style="text-align: center; font-size: 18px; margin-bottom: 20px;">
+                현재 <strong id="currentStreak">0</strong>일 연속 학습 중입니다!
+            </p>
+            <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                <p style="text-align: center; color: white; font-weight: 600; margin: 0;">
+                    오늘 학습하면 <span style="font-size: 24px;">⭐ <span id="todayReward">5</span></span> 개 획득!
+                </p>
+            </div>
+            <div id="streakHistory" style="text-align: center; margin-bottom: 20px; color: #6b7280; font-size: 14px;">
+                <!-- 여기에 연속 학습 히스토리 표시 -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn yes" onclick="closeDailyStreakModal()">확인</button>
+            </div>
+        </div>
+</div>
+
     <!-- 피드백 요소 -->
     <div class="feedback" id="feedback"></div>
 
@@ -3571,6 +3595,8 @@
         let tempVocabTimer = null;
         let tempVocabData = null;
         let tempMasteredWords = {}; // 임시 단어장에서 새로 마스터한 단어 추적
+        let hasShownDailyStreak = false; // 일일 스트릭 모달 표시 여부
+        let todayStudyRewarded = false; // 오늘 학습 보상 받았는지 여부
 
         // 초기화
         document.addEventListener('DOMContentLoaded', function() {
@@ -3934,6 +3960,9 @@
                 }
                 
                 currentVocab.lastStreakDate = new Date().toISOString();
+                
+                // 스트릭 보상 지급
+                giveStreakReward();
             }
         }
 
@@ -3949,6 +3978,12 @@
                         document.getElementById('purchaseCount').textContent = (appData.purchasedVocabs || []).length;
                     }
                     displayChapters();
+                    // 일일 스트릭 모달 표시 (페이지 로드 시)
+                    if (!hasShownDailyStreak && currentVocab && currentVocab.words.length > 0) {
+                        setTimeout(() => {
+                            showDailyStreakModal();
+                        }, 500);
+                    }
                     updateWeakWordsList();
                 }
                 return;  // checkAndResumeProgress 호출하지 않음
@@ -4287,7 +4322,14 @@
                     appData.currentVocabId = defaultVocab.id;
                     currentVocab = defaultVocab;
                 }
-                
+                // 오늘 보상 받았는지 확인
+                if (currentVocab) {
+                    const today = new Date().toDateString();
+                    const lastRewarded = localStorage.getItem(`lastStreakReward_${currentVocab.id}`);
+                    if (lastRewarded === today) {
+                        todayStudyRewarded = true;
+                    }
+                }
                 updateUI();
             } catch (error) {
                 console.error('Failed to load saved data:', error);
@@ -8737,6 +8779,106 @@
         }
 
         let pendingStudyAction = null;
+
+        // 일일 스트릭 모달 표시
+        function showDailyStreakModal() {
+            if (!currentVocab || hasShownDailyStreak) return;
+            
+            const today = new Date().toDateString();
+            const lastStudied = currentVocab.lastStudiedAt ? new Date(currentVocab.lastStudiedAt).toDateString() : null;
+            const streak = currentVocab.studyStreak || 0;
+            
+            // 오늘의 보상 계산
+            let todayReward = 5;
+            if (streak >= 3) {
+                todayReward = 20;
+            } else if (streak === 2) {
+                todayReward = 15;
+            } else if (streak === 1) {
+                todayReward = 10;
+            }
+            
+            // 모달 내용 업데이트
+            if (lastStudied === today) {
+                document.getElementById('streakEmoji').textContent = '🔥';
+                document.getElementById('streakTitle').textContent = `${streak}일 연속 학습 중!`;
+                document.getElementById('currentStreak').textContent = streak;
+                document.getElementById('streakMessage').innerHTML = `현재 <strong>${streak}</strong>일 연속 학습 중입니다!`;
+            } else if (streak > 0) {
+                document.getElementById('streakEmoji').textContent = '❄️';
+                document.getElementById('streakTitle').textContent = '연속 학습 기록이 있습니다!';
+                document.getElementById('currentStreak').textContent = streak;
+                document.getElementById('streakMessage').innerHTML = `${streak}일 연속 기록이 있습니다.<br>오늘 학습하면 ${streak + 1}일로 늘어납니다!`;
+            } else {
+                document.getElementById('streakEmoji').textContent = '💧';
+                document.getElementById('streakTitle').textContent = '새로운 시작!';
+                document.getElementById('currentStreak').textContent = '0';
+                document.getElementById('streakMessage').innerHTML = '오늘부터 연속 학습을 시작해보세요!';
+            }
+            
+            document.getElementById('todayReward').textContent = todayReward;
+            
+            // 히스토리 표시
+            let historyText = '';
+            if (todayReward === 5) historyText = '1일: ⭐5 → 2일: ⭐10 → 3일: ⭐15 → 4일+: ⭐20';
+            else if (todayReward === 10) historyText = '어제: ⭐5 획득 → 오늘: ⭐10 → 내일: ⭐15';
+            else if (todayReward === 15) historyText = '어제: ⭐10 획득 → 오늘: ⭐15 → 내일부터: ⭐20';
+            else historyText = '매일 ⭐20 획득 중! 연속 학습을 이어가세요!';
+            
+            document.getElementById('streakHistory').textContent = historyText;
+            
+            // 모달 표시
+            document.getElementById('dailyStreakModal').style.display = 'flex';
+            hasShownDailyStreak = true;
+        }
+        
+        // 일일 스트릭 모달 닫기
+        function closeDailyStreakModal() {
+            document.getElementById('dailyStreakModal').style.display = 'none';
+        }
+        
+        // 스트릭 보상 지급
+        function giveStreakReward() {
+            if (!currentVocab || todayStudyRewarded) return;
+            
+            const today = new Date().toDateString();
+            const lastRewarded = localStorage.getItem(`lastStreakReward_${currentVocab.id}`);
+            
+            if (lastRewarded === today) {
+                todayStudyRewarded = true;
+                return;
+            }
+            
+            const streak = currentVocab.studyStreak || 0;
+            let reward = 5;
+            
+            if (streak >= 4) {
+                reward = 20;
+            } else if (streak === 3) {
+                reward = 15;
+            } else if (streak === 2) {
+                reward = 10;
+            } else if (streak === 1) {
+                reward = 5;
+            }
+            
+            if (streak > 0) {
+                appData.userStars += reward;
+                document.getElementById('userStars').textContent = `⭐ ${appData.userStars}`;
+                
+                // 보상 지급 기록
+                localStorage.setItem(`lastStreakReward_${currentVocab.id}`, today);
+                todayStudyRewarded = true;
+                
+                // 피드백 표시
+                showFeedback(`🔥 ${streak}일 연속 학습 보상! ⭐+${reward}`, 'master');
+                
+                // 별 날리기 효과
+                createSuccessSparkles();
+                
+                autoSave();
+            }
+        }
 
         function showFeedback(message, type) {
             const feedback = document.getElementById('feedback');
