@@ -3849,12 +3849,31 @@ item.innerHTML = `
             if (tempVocabData) {
                 document.getElementById('sendBackToOriginalCard').style.display = 'block';
                 updateSendBackTimeRemaining();
+                
+                // 예상 획득 별 계산 및 표시
+                let potentialStars = 0;
+                if (currentVocab) {
+                    currentVocab.words.forEach(word => {
+                        if (word.weakness === 0 && word.correctCount >= 3) {
+                            const wordText = word.word.toLowerCase();
+                            const originalMastered = tempVocabData.originalData?.globalMasteredWords?.[wordText];
+                            if (!originalMastered) {
+                                potentialStars += 2;
+                            }
+                        }
+                    });
+                }
+                
+                if (potentialStars > 0) {
+                    // 예상 별 표시 업데이트
+                    const currentStarsElement = document.getElementById('userStars');
+                    currentStarsElement.innerHTML = `⭐ ${appData.userStars} <span style="color: #f59e0b; font-size: 0.9em;">(+${potentialStars} 예정)</span>`;
+                }
             } else {
                 document.getElementById('sendBackToOriginalCard').style.display = 'none';
             }
         }
 
-        // 진행상황 체크 및 자동 복원
         // 진행상황 체크 및 자동 복원
         function checkAndResumeProgress() {
             if (!currentVocab || isResuming) return;
@@ -4080,6 +4099,43 @@ item.innerHTML = `
                 }
                 
                 if (data) {
+                    // 임시 단어장 데이터 먼저 확인 및 복원
+                    if (data.tempVocabData) {
+                        tempVocabData = data.tempVocabData;
+                        
+                        // 만료 시간 체크
+                        const expiresAt = new Date(tempVocabData.transferInfo.expiresAt).getTime();
+                        const now = Date.now();
+                        
+                        if (now < expiresAt) {
+                            // 아직 유효한 경우
+                            console.log('임시 단어장 데이터 복원');
+                            
+                            // 원본 데이터 백업 (tempVocabData에 이미 있으면 사용하지 않음)
+                            if (!tempVocabData.originalData) {
+                                tempVocabData.originalData = {
+                                    vocabularies: data.vocabularies || {},
+                                    currentVocabId: data.currentVocabId,
+                                    userStars: data.userStars || 1000,
+                                    purchasedVocabs: data.purchasedVocabs || [],
+                                    globalMasteredWords: data.globalMasteredWords || {},
+                                    globalSettings: data.globalSettings || appData.globalSettings,
+                                    version: 3
+                                };
+                            }
+                            
+                            // tempVocabData가 별도로 저장된 경우 처리
+                            delete data.tempVocabData;
+                        } else {
+                            // 만료된 경우 원본 데이터 복원
+                            console.log('임시 단어장 만료됨, 원본 데이터 복원');
+                            if (tempVocabData.originalData) {
+                                data = tempVocabData.originalData;
+                            }
+                            tempVocabData = null;
+                        }
+                    }
+                    
                     if (data.version === 3) {
                         appData = data;
                         // 별과 마스터 단어 초기화
@@ -4088,7 +4144,6 @@ item.innerHTML = `
                         if (!appData.globalMasteredWords) appData.globalMasteredWords = {};
                         if (!appData.masteredWordIds) appData.masteredWordIds = [];
                     } else {
-                        
                         // 이전 버전 마이그레이션
                         migrateOldData(data);
                     }
@@ -4100,6 +4155,11 @@ item.innerHTML = `
                     
                     // 글로벌 설정 복원
                     restoreGlobalSettings();
+                    
+                    // 임시 단어장 타이머 재시작
+                    if (tempVocabData) {
+                        startTempVocabTimer();
+                    }
                 }
                 
                 // 단어장이 하나도 없으면 기본 단어장 생성
@@ -4404,8 +4464,14 @@ item.innerHTML = `
         
         // 데이터 자동 저장 (동기화 포함)
         async function autoSave() {
-            try {        
-                const dataStr = JSON.stringify(appData);                
+            try {
+                // 임시 단어장 데이터도 포함하여 저장
+                const saveData = {
+                    ...appData,
+                    tempVocabData: tempVocabData || null
+                };
+                
+                const dataStr = JSON.stringify(saveData);
                 // 크기 체크
                 const sizeInMB = dataStr.length / (1024 * 1024);
                 if (sizeInMB > 5) {
@@ -4425,7 +4491,7 @@ item.innerHTML = `
                 
                 // IndexedDB에 저장
                 if (db) {
-                    await saveToIndexedDB(appData);
+                    await saveToIndexedDB(saveData);
                 } else {
                     // IndexedDB 사용 불가시 localStorage 폴백
                     localStorage.setItem('wordMasterData', dataStr);
@@ -7102,6 +7168,28 @@ item.innerHTML = `
             
             // 임시 단어장에서는 별 획득 불가
             if (tempVocabData) {
+                // 임시 단어장에서도 마스터 단어 체크
+                let tempMasteredCount = 0;
+                
+                currentVocab.words.forEach(word => {
+                    // 마스터 조건: weakness가 0이고 correctCount가 3 이상
+                    if (word.weakness === 0 && word.correctCount >= 3) {
+                        const wordText = word.word.toLowerCase();
+                        
+                        // 원본 데이터의 마스터 단어 확인
+                        const originalMastered = tempVocabData.originalData?.globalMasteredWords?.[wordText];
+                        
+                        if (!originalMastered) {
+                            // 원본에서 마스터하지 않은 단어
+                            tempMasteredCount++;
+                        }
+                    }
+                });
+                
+                if (tempMasteredCount > 0) {
+                    showFeedback(`✨ 새 단어 마스터! (원본 전송 시 ⭐+${tempMasteredCount * 2} 획득 예정)`, 'master');
+                }
+                
                 return;
             }
             
@@ -7132,6 +7220,7 @@ item.innerHTML = `
             document.getElementById('userStars').textContent = `⭐ ${appData.userStars}`;
             autoSave();
         }
+
         // 통계 업데이트
         function updateStats() {
             if (!currentVocab) {

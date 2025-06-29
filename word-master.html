@@ -3456,6 +3456,7 @@
         let pendingTransferId = null;
         let tempVocabTimer = null;
         let tempVocabData = null;
+        let tempMasteredWords = {}; // 임시 단어장에서 새로 마스터한 단어 추적
 
         // 초기화
         document.addEventListener('DOMContentLoaded', function() {
@@ -3850,24 +3851,15 @@ item.innerHTML = `
                 document.getElementById('sendBackToOriginalCard').style.display = 'block';
                 updateSendBackTimeRemaining();
                 
-                // 예상 획득 별 계산 및 표시
-                let potentialStars = 0;
-                if (currentVocab) {
-                    currentVocab.words.forEach(word => {
-                        if (word.weakness === 0 && word.correctCount >= 3) {
-                            const wordText = word.word.toLowerCase();
-                            const originalMastered = tempVocabData.originalData?.globalMasteredWords?.[wordText];
-                            if (!originalMastered) {
-                                potentialStars += 2;
-                            }
-                        }
-                    });
-                }
+                // 임시 단어장에서 새로 마스터한 단어로 인한 예상 별 표시
+                const potentialStars = Object.keys(tempMasteredWords).length * 2;
                 
                 if (potentialStars > 0) {
                     // 예상 별 표시 업데이트
                     const currentStarsElement = document.getElementById('userStars');
                     currentStarsElement.innerHTML = `⭐ ${appData.userStars} <span style="color: #f59e0b; font-size: 0.9em;">(+${potentialStars} 예정)</span>`;
+                } else {
+                    document.getElementById('userStars').textContent = `⭐ ${appData.userStars}`;
                 }
             } else {
                 document.getElementById('sendBackToOriginalCard').style.display = 'none';
@@ -7166,42 +7158,37 @@ item.innerHTML = `
         function updateStarsForMastery() {
             if (!currentVocab) return;
             
-            // 임시 단어장에서는 별 획득 불가
-            if (tempVocabData) {
-                // 임시 단어장에서도 마스터 단어 체크
-                let tempMasteredCount = 0;
-                
-                currentVocab.words.forEach(word => {
-                    // 마스터 조건: weakness가 0이고 correctCount가 3 이상
-                    if (word.weakness === 0 && word.correctCount >= 3) {
-                        const wordText = word.word.toLowerCase();
-                        
-                        // 원본 데이터의 마스터 단어 확인
-                        const originalMastered = tempVocabData.originalData?.globalMasteredWords?.[wordText];
-                        
-                        if (!originalMastered) {
-                            // 원본에서 마스터하지 않은 단어
-                            tempMasteredCount++;
-                        }
-                    }
-                });
-                
-                if (tempMasteredCount > 0) {
-                    showFeedback(`✨ 새 단어 마스터! (원본 전송 시 ⭐+${tempMasteredCount * 2} 획득 예정)`, 'master');
-                }
-                
-                return;
-            }
-            
             currentVocab.words.forEach(word => {
                 // 마스터 조건: weakness가 0이고 correctCount가 3 이상
                 if (word.weakness === 0 && word.correctCount >= 3) {
-                    // 전역 마스터 단어 체크 (단어 텍스트로 체크)
+                    const wordText = word.word.toLowerCase();
+                    
+                    // 임시 단어장에서는 별 획득 불가하지만 기록은 함
+                    if (tempVocabData) {
+                        // 원본 데이터의 마스터 단어 확인
+                        const originalMastered = tempVocabData.originalData?.globalMasteredWords?.[wordText];
+                        
+                        if (!originalMastered && !tempMasteredWords[wordText]) {
+                            // 임시 단어장에서 처음 마스터한 단어
+                            tempMasteredWords[wordText] = {
+                                firstMasteredDate: new Date().toISOString(),
+                                vocabId: currentVocab.id
+                            };
+                            
+                            // 예상 별 개수 계산
+                            const potentialStars = Object.keys(tempMasteredWords).length * 2;
+                            showFeedback(`✨ 새 단어 마스터! (원본 전송 시 ⭐+2 획득, 총 ${potentialStars}개 예정)`, 'master');
+                            
+                            // UI 업데이트
+                            updateUI();
+                        }
+                        return;
+                    }
+                    
+                    // 일반 단어장에서의 처리
                     if (!appData.globalMasteredWords) {
                         appData.globalMasteredWords = {};
                     }
-                    
-                    const wordText = word.word.toLowerCase();
                     
                     if (!appData.globalMasteredWords[wordText]) {
                         // 처음 마스터하는 단어
@@ -8383,6 +8370,9 @@ item.innerHTML = `
                 // 기존 데이터 백업
                 tempVocabData.originalData = JSON.parse(JSON.stringify(appData));
                 
+                // 임시 마스터 단어 초기화
+                tempMasteredWords = {};
+                
                 // 전송받은 데이터로 완전히 교체
                 appData = {
                     vocabularies: transferData.vocabularies || {},
@@ -8887,6 +8877,7 @@ item.innerHTML = `
                 }
                 
                 tempVocabData = null;
+                tempMasteredWords = {}; // 임시 마스터 단어 초기화
             }
             
             // UI 업데이트
