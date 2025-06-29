@@ -412,7 +412,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid #e8e8e8;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
         }
 
         /* 다운로드 상태 표시 */
@@ -426,6 +426,7 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+            z-index: 10;
         }
 
         .online-vocab-item:hover {
@@ -3016,6 +3017,9 @@
                                 ⏰ 남은 시간: <span id="sendBackTimeRemaining" style="font-weight: 600;">--:--:--</span>
                             </div>
                         </div>
+                        <button class="reset-btn" style="margin-top: 15px; background: #6b7280;" onclick="cancelTempVocab()">
+                            ↩️ 임시 단어장 취소 (원본 복원)
+                        </button>
                     </div>
                     <!-- 구매 기록 -->
                     <div class="setting-card">
@@ -8934,10 +8938,24 @@ item.innerHTML = `
             
             // 원본 데이터 복원
             if (tempVocabData && tempVocabData.originalData) {
-                appData = tempVocabData.originalData;
+                // 원본 데이터 완전 복원
+                appData = JSON.parse(JSON.stringify(tempVocabData.originalData));
                 
                 if (appData.currentVocabId && appData.vocabularies[appData.currentVocabId]) {
                     currentVocab = appData.vocabularies[appData.currentVocabId];
+                } else {
+                    // 현재 단어장이 없으면 첫 번째 단어장 선택
+                    const vocabIds = Object.keys(appData.vocabularies);
+                    if (vocabIds.length > 0) {
+                        appData.currentVocabId = vocabIds[0];
+                        currentVocab = appData.vocabularies[vocabIds[0]];
+                    }
+                }
+                
+                // 설정도 원본으로 복원
+                if (tempVocabData.originalData.globalSettings) {
+                    appData.globalSettings = tempVocabData.originalData.globalSettings;
+                    restoreGlobalSettings();
                 }
                 
                 tempVocabData = null;
@@ -8946,6 +8964,7 @@ item.innerHTML = `
             
             // UI 업데이트
             document.getElementById('tempVocabIndicator').style.display = 'none';
+            document.getElementById('sendBackToOriginalCard').style.display = 'none';
             updateUI();
             autoSave();
             
@@ -9057,6 +9076,54 @@ item.innerHTML = `
                 showFeedback(successMessage, 'master');
             } else {
                 showFeedback(successMessage, 'success');
+            }
+        }
+
+        // 임시 단어장 취소
+        function cancelTempVocab() {
+            if (!tempVocabData) {
+                showFeedback('임시 단어장이 아닙니다', 'error');
+                return;
+            }
+            
+            if (confirm('임시 단어장을 취소하고 원본 데이터로 돌아가시겠습니까?\n\n현재까지의 학습 기록은 저장되지 않습니다.')) {
+                // 타이머 정지
+                if (tempVocabTimer) {
+                    clearInterval(tempVocabTimer);
+                    tempVocabTimer = null;
+                }
+                
+                // 원본 데이터 복원
+                if (tempVocabData.originalData) {
+                    appData = JSON.parse(JSON.stringify(tempVocabData.originalData));
+                    
+                    if (appData.currentVocabId && appData.vocabularies[appData.currentVocabId]) {
+                        currentVocab = appData.vocabularies[appData.currentVocabId];
+                    } else {
+                        const vocabIds = Object.keys(appData.vocabularies);
+                        if (vocabIds.length > 0) {
+                            appData.currentVocabId = vocabIds[0];
+                            currentVocab = appData.vocabularies[vocabIds[0]];
+                        }
+                    }
+                    
+                    // 설정도 원본으로 복원
+                    if (tempVocabData.originalData.globalSettings) {
+                        appData.globalSettings = tempVocabData.originalData.globalSettings;
+                        restoreGlobalSettings();
+                    }
+                }
+                
+                tempVocabData = null;
+                tempMasteredWords = {};
+                
+                // UI 업데이트
+                document.getElementById('tempVocabIndicator').style.display = 'none';
+                document.getElementById('sendBackToOriginalCard').style.display = 'none';
+                updateUI();
+                autoSave();
+                
+                showFeedback('↩️ 원본 데이터로 복원되었습니다', 'success');
             }
         }
     </script>
