@@ -310,6 +310,48 @@
             gap: 12px;
             padding: 0 16px 20px;
         }
+        /* 카테고리 탭 스타일 추가 */
+        .category-tab {
+            padding: 8px 16px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            color: #4b5563;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .category-tab:hover {
+            background: #f3f4f6;
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .category-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .dark-mode .category-tab {
+            background: var(--dark-hover);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--dark-text-secondary);
+        }
+        
+        .dark-mode .category-tab:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .dark-mode .category-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
 
         .online-category-tab {
             width: 100%;
@@ -3219,14 +3261,9 @@
             </div>
             
             <!-- 카테고리 탭 -->
-            <div style="display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap;">
-                <button class="category-tab active" onclick="filterByCategory('all')">전체</button>
-                <button class="category-tab" onclick="filterByCategory('toeic')">TOEIC</button>
-                <button class="category-tab" onclick="filterByCategory('school')">학교</button>
-                <button class="category-tab" onclick="filterByCategory('hobby')">취미</button>
-                <button class="category-tab" onclick="filterByCategory('basic')">기초</button>
-            </div>
-            
+            <div id="onlineCategoryTabs" style="display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap;">
+                <!-- 카테고리 탭은 JavaScript에서 동적으로 생성됩니다 -->
+            </div>          
             <!-- 단어장 목록 -->
             <div class="vocab-list" id="onlineVocabList">
                 <div style="text-align: center; padding: 60px;">
@@ -7576,6 +7613,9 @@ item.innerHTML = `
                 const data = await response.json();
                 onlineVocabs = data.categories;
                 
+                // 카테고리 탭 생성
+                createCategoryTabs();
+                
                 // 전체 카테고리 표시
                 displayOnlineVocabs('all');
             } catch (error) {
@@ -7782,21 +7822,42 @@ item.innerHTML = `
         function filterByCategory(category) {
             currentCategory = category;
             
-            // 탭 활성화 상태 변경 (애니메이션 효과 추가)
-            document.querySelectorAll('.online-category-tab').forEach(tab => {
-                tab.classList.remove('active');
+            // 탭 활성화 상태 변경
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                if (tab.getAttribute('data-category') === category) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
             });
             
-            const activeTab = event.target.closest('.online-category-tab');
-            activeTab.classList.add('active');
-            
-            // 클릭 효과
-            activeTab.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                activeTab.style.transform = '';
-            }, 100);
-            
             displayOnlineVocabs(category);
+        }
+        
+        // 카테고리 탭 동적 생성
+        function createCategoryTabs() {
+            const tabsContainer = document.getElementById('onlineCategoryTabs');
+            tabsContainer.innerHTML = '';
+            
+            // 전체 탭 추가
+            const allTab = document.createElement('button');
+            allTab.className = 'category-tab active';
+            allTab.setAttribute('data-category', 'all');
+            allTab.textContent = '전체';
+            allTab.onclick = () => filterByCategory('all');
+            tabsContainer.appendChild(allTab);
+            
+            // 각 카테고리 탭 추가
+            onlineVocabs.forEach(category => {
+                if (category.vocabularies && category.vocabularies.length > 0) {
+                    const tab = document.createElement('button');
+                    tab.className = 'category-tab';
+                    tab.setAttribute('data-category', category.id);
+                    tab.innerHTML = `${category.icon || '📁'} ${category.name}`;
+                    tab.onclick = () => filterByCategory(category.id);
+                    tabsContainer.appendChild(tab);
+                }
+            });
         }
 
         // 다운로드 버튼 애니메이션 개선
