@@ -704,23 +704,59 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
-        .vocab-item button {
+
+        .vocab-item-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .vocab-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .vocab-item-info {
+            flex: 1;
+        }
+
+        .vocab-item-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .vocab-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .vocab-item-actions button {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
             opacity: 0.7;
             transition: opacity 0.2s ease;
         }
 
-        .vocab-item:hover button {
+        .vocab-item:hover .vocab-item-actions button {
             opacity: 1;
         }
+
         .dark-mode .vocab-item {
             background: rgba(255,255,255,0.05);
         }
-        .dark-mode .vocab-item button {
+
+        .dark-mode .vocab-item-actions button {
             color: #a1a1aa;
         }
 
-        .dark-mode .vocab-item button:hover {
+        .dark-mode .vocab-item-actions button:hover {
             color: #e4e4e7;
         }
 
@@ -738,10 +774,6 @@
             color: white;
         }
 
-        .vocab-item-info {
-            flex: 1;
-        }
-
         .vocab-item-name {
             font-weight: 600;
             font-size: 16px;
@@ -756,14 +788,15 @@
         .vocab-item-progress {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            width: 100%;
         }
 
         .vocab-progress-bar {
-            width: 60px;
-            height: 6px;
+            flex: 1;
+            height: 8px;
             background: rgba(0,0,0,0.1);
-            border-radius: 3px;
+            border-radius: 4px;
             overflow: hidden;
             position: relative;
         }
@@ -772,12 +805,6 @@
             background: rgba(255,255,255,0.1);
         }
 
-        .vocab-progress-fill {
-            height: 100%;
-            background: #10b981;
-            transition: width 0.3s ease;
-        }
-        
         .vocab-progress-attempt {
             position: absolute;
             top: 0;
@@ -785,7 +812,17 @@
             height: 100%;
             background: rgba(251, 191, 36, 0.5);
             transition: width 0.3s ease;
-            border-radius: 3px;
+            border-radius: 4px;
+        }
+
+        .vocab-progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #10b981;
+            transition: width 0.3s ease;
+            border-radius: 4px;
         }
 
         .vocab-item.active .vocab-progress-bar {
@@ -796,6 +833,22 @@
             background: white;
         }
 
+        .vocab-item.active .vocab-progress-attempt {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .vocab-progress-text {
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 35px;
+            text-align: right;
+            color: #10b981;
+        }
+
+        .vocab-item.active .vocab-progress-text {
+            color: white;
+        }
+
         .vocab-streak {
             font-size: 18px;
             display: flex;
@@ -803,6 +856,10 @@
             gap: 2px;
             font-weight: 600;
             color: #f59e0b;
+        }
+
+        .vocab-item.active .vocab-streak {
+            color: white;
         }
 
         .vocab-modal-actions {
@@ -3664,28 +3721,34 @@
                 }
                 
                 item.innerHTML = `
-                    <div class="vocab-item-info">
-                        <div class="vocab-item-name">${vocab.name}</div>
-                        <div class="vocab-item-stats">
-                            ${totalWords}개 단어 • 시도 ${attemptedWords}개 • 마스터 ${masteredWords}개
+                    <div class="vocab-item-content">
+                        <div class="vocab-item-header">
+                            <div class="vocab-item-info">
+                                <div class="vocab-item-name">${vocab.name}</div>
+                                <div class="vocab-item-stats">
+                                    ${totalWords}개 단어 • 시도 ${attemptedWords}개 • 마스터 ${masteredWords}개
+                                </div>
+                            </div>
+                            <div class="vocab-item-right">
+                                <div class="vocab-streak" title="${streakDays}일 연속">${streakIcon}${streakDays > 0 ? streakDays : ''}</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="vocab-item-progress">
-                        <div class="vocab-progress-bar">
-                            <div class="vocab-progress-attempt" style="width: ${attemptedProgress}%"></div>
-                            <div class="vocab-progress-fill" style="width: ${masteredProgress}%"></div>
+                        <div class="vocab-item-progress">
+                            <div class="vocab-progress-bar">
+                                <div class="vocab-progress-attempt" style="width: ${attemptedProgress}%"></div>
+                                <div class="vocab-progress-fill" style="width: ${masteredProgress}%"></div>
+                            </div>
+                            <div class="vocab-progress-text">${masteredProgress}%</div>
                         </div>
-                        <div class="vocab-streak" title="${streakDays}일 연속">${streakIcon}${streakDays > 0 ? streakDays : ''}</div>
                     </div>
                 `;
                 
                 // 편집/삭제 버튼 추가
                 const actionButtons = document.createElement('div');
-                actionButtons.style.cssText = 'display: flex; gap: 8px; margin-left: 12px;';
+                actionButtons.className = 'vocab-item-actions';
                 
                 const editBtn = document.createElement('button');
                 editBtn.innerHTML = '✏️';
-                editBtn.style.cssText = 'background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 4px;';
                 editBtn.onclick = (e) => {
                     e.stopPropagation();
                     editVocabulary(vocab.id);
@@ -3693,7 +3756,6 @@
                 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '🗑️';
-                deleteBtn.style.cssText = 'background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 4px;';
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
                     deleteVocabulary(vocab.id);
