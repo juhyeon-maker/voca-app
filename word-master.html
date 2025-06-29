@@ -706,7 +706,7 @@
             align-items: center;
         }
         .vocab-item button {
-            opacity: 0;
+            opacity: 0.7;
             transition: opacity 0.2s ease;
         }
 
@@ -765,6 +765,7 @@
             background: rgba(0,0,0,0.1);
             border-radius: 3px;
             overflow: hidden;
+            position: relative;
         }
 
         .dark-mode .vocab-progress-bar {
@@ -775,6 +776,16 @@
             height: 100%;
             background: #10b981;
             transition: width 0.3s ease;
+        }
+        
+        .vocab-progress-attempt {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: rgba(251, 191, 36, 0.5);
+            transition: width 0.3s ease;
+            border-radius: 3px;
         }
 
         .vocab-item.active .vocab-progress-bar {
@@ -787,6 +798,11 @@
 
         .vocab-streak {
             font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-weight: 600;
+            color: #f59e0b;
         }
 
         .vocab-modal-actions {
@@ -3632,28 +3648,34 @@
                 
                 const totalWords = vocab.words.length;
                 const masteredWords = vocab.words.filter(w => w.weakness === 0 && w.correctCount >= 3).length;
-                const progress = totalWords > 0 ? Math.round((masteredWords / totalWords) * 100) : 0;
+                const attemptedWords = vocab.words.filter(w => w.correctCount > 0).length;
+                const masteredProgress = totalWords > 0 ? Math.round((masteredWords / totalWords) * 100) : 0;
+                const attemptedProgress = totalWords > 0 ? Math.round((attemptedWords / totalWords) * 100) : 0;
                 
                 // 스트릭 계산
                 const today = new Date().toDateString();
                 const lastStudied = vocab.lastStudiedAt ? new Date(vocab.lastStudiedAt).toDateString() : null;
                 let streakIcon = '💧';
+                let streakDays = vocab.studyStreak || 0;
                 if (lastStudied === today) {
                     streakIcon = '🔥';
                 } else if (vocab.studyStreak > 0) {
                     streakIcon = '❄️';
                 }
                 
-item.innerHTML = `
+                item.innerHTML = `
                     <div class="vocab-item-info">
                         <div class="vocab-item-name">${vocab.name}</div>
-                        <div class="vocab-item-stats">${totalWords}개 단어 • ${progress}% 완료</div>
+                        <div class="vocab-item-stats">
+                            ${totalWords}개 단어 • 시도 ${attemptedWords}개 • 마스터 ${masteredWords}개
+                        </div>
                     </div>
                     <div class="vocab-item-progress">
                         <div class="vocab-progress-bar">
-                            <div class="vocab-progress-fill" style="width: ${progress}%"></div>
+                            <div class="vocab-progress-attempt" style="width: ${attemptedProgress}%"></div>
+                            <div class="vocab-progress-fill" style="width: ${masteredProgress}%"></div>
                         </div>
-                        <div class="vocab-streak">${streakIcon}</div>
+                        <div class="vocab-streak" title="${streakDays}일 연속">${streakIcon}${streakDays > 0 ? streakDays : ''}</div>
                     </div>
                 `;
                 
@@ -3682,7 +3704,8 @@ item.innerHTML = `
                 item.appendChild(actionButtons);
                 
                 item.onclick = () => selectVocabulary(vocab.id);
-                vocabList.appendChild(item);            });
+                vocabList.appendChild(item);
+            });
             
             if (Object.keys(appData.vocabularies).length === 0) {
                 vocabList.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 40px;">단어장이 없습니다</div>';
