@@ -137,6 +137,13 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        h3 {
+            font-size: var(--section-title-size, 20px);
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 20px 0;
+        }
+        
         .dark-mode h3 {
             color: var(--dark-text);
         }
@@ -230,7 +237,7 @@
         }
 
         .header h1 {
-            font-size: 32px;
+            font-size: var(--header-title-size, 32px);
             font-weight: 900;
             margin-bottom: 15px;
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
@@ -258,7 +265,7 @@
         }
 
         .header .subtitle {
-            font-size: 14px;
+            font-size: var(--header-subtitle-size, 14px);
             opacity: 0.9;
             font-weight: 300;
             letter-spacing: 2px;
@@ -776,12 +783,12 @@
 
         .vocab-item-name {
             font-weight: 600;
-            font-size: 16px;
+            font-size: var(--vocab-name-size, 16px);
             margin-bottom: 4px;
         }
 
         .vocab-item-stats {
-            font-size: 13px;
+            font-size: var(--vocab-stats-size, 13px);
             opacity: 0.8;
         }
 
@@ -933,7 +940,7 @@
         }
 
         .stat-value {
-            font-size: 28px;
+            font-size: var(--stat-value-size, 28px);
             font-weight: 800;
             display: block;
             background: linear-gradient(45deg, #fff, #f0f0f0);
@@ -943,7 +950,7 @@
         }
 
         .stat-label {
-            font-size: 11px;
+            font-size: var(--stat-label-size, 11px);
             opacity: 0.9;
             margin-top: 5px;
             text-transform: uppercase;
@@ -969,7 +976,7 @@
             background: transparent;
             border: none;
             color: #666;
-            font-size: 15px;
+            font-size: var(--tab-font-size, 15px);
             letter-spacing: 0.5px;
         }
 
@@ -1045,7 +1052,7 @@
         }
 
         .setting-title {
-            font-size: 17px;
+            font-size: var(--setting-title-size, 17px);
             font-weight: 700;
             margin-bottom: 16px;
             color: #1a1a1a;
@@ -1102,6 +1109,7 @@
             text-align: center;
             font-weight: 600;
             color: #667eea;
+            font-size: var(--slider-value-size, 14px);
         }
 
         /* 업로드 버튼 개선 */
@@ -1112,7 +1120,7 @@
             border-radius: 12px;
             background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
             color: #667eea;
-            font-size: 16px;
+            font-size: var(--upload-btn-size, 16px);
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1156,7 +1164,7 @@
             padding: 12px 15px;
             border: 2px solid #e8ecff;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: var(--checkbox-label-size, 14px);
             background: white;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -1216,7 +1224,7 @@
 
         .checkbox-group label {
             cursor: pointer;
-            font-size: 14px;
+            font-size: var(--checkbox-label-size, 14px);
         }
 
         .test-voice-btn {
@@ -1228,7 +1236,12 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 14px;
+            font-size: var(--checkbox-label-size, 14px);
+        }
+
+        /* 설정 설명 텍스트 */
+        .setting-card > div[style*="margin-top: 10px"] {
+            font-size: var(--setting-description-size, 14px) !important;
         }
 
         .test-voice-btn:hover {
@@ -1364,13 +1377,13 @@
         }
 
         .chapter-title {
-            font-size: 18px;
+            font-size: var(--chapter-title-size, 18px);
             font-weight: 700;
             color: #1a1a1a;
         }
 
         .chapter-stars {
-            font-size: 22px;
+            font-size: var(--chapter-stars-size, 22px);
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
         }
 
@@ -1396,7 +1409,7 @@
         }
 
         .progress-info {
-            font-size: 13px;
+            font-size: var(--chapter-info-size, 13px);
             color: #666;
             margin-bottom: 8px;
         }
@@ -1435,7 +1448,7 @@
 
         .chapter-info {
             color: #666;
-            font-size: 13px;
+            font-size: var(--chapter-info-size, 13px);
             line-height: 1.6;
         }
 
@@ -1499,7 +1512,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 15px;
+            font-size: var(--button-font-size, 15px);
             position: relative;
             overflow: hidden;
             color: white;
@@ -1544,7 +1557,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 14px;
+            font-size: var(--small-button-size, 14px);
             position: relative;
             overflow: hidden;
             text-align: center;
@@ -1595,7 +1608,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 15px;
+            font-size: var(--button-font-size, 15px);
         }
 
         .reset-btn:hover {
@@ -1644,13 +1657,13 @@
 
         .weak-word-title {
             font-weight: 600;
-            font-size: 15px;
+            font-size: var(--weak-word-title-size, 15px);
             margin-bottom: 4px;
             color: #1a1a1a;
         }
 
         .weak-word-stats {
-            font-size: 12px;
+            font-size: var(--weak-word-stats-size, 12px);
             color: #666;
         }
 
@@ -1755,7 +1768,7 @@
         }
 
         .word-text {
-            font-size: 48px;
+            font-size: var(--study-word-size, 48px);
             font-weight: 800;
             color: #1a1a1a;
             margin-bottom: 8px;
@@ -1768,7 +1781,7 @@
         }
 
         .word-pronunciation {
-            font-size: 24px;
+            font-size: var(--study-pronunciation-size, 24px);
             color: #9ca3af;
             margin-bottom: 24px;
             transition: opacity 0.3s ease;
@@ -1779,7 +1792,7 @@
         }
 
         .word-meaning {
-            font-size: 28px;
+            font-size: var(--study-meaning-size, 28px);
             color: #4b5563;
             margin-bottom: 20px;
             font-weight: 600;
@@ -1791,7 +1804,7 @@
         }
 
         .word-example {
-            font-size: 20px;
+            font-size: var(--study-example-size, 20px);
             color: #6b7280;
             font-style: italic;
             line-height: 1.6;
@@ -1804,7 +1817,7 @@
         }
 
         .word-example-meaning {
-            font-size: 18px;
+            font-size: var(--study-example-meaning-size, 18px);
             color: #9ca3af;
             line-height: 1.6;
             transition: opacity 0.3s ease;
@@ -1951,7 +1964,7 @@
         }
 
         .question-word {
-            font-size: 40px;
+            font-size: var(--test-word-size, 40px);
             font-weight: 800;
             color: #1a1a1a;
             margin-bottom: 24px;
@@ -1963,7 +1976,7 @@
         }
 
         .question-example {
-            font-size: 18px;
+            font-size: var(--test-example-size, 18px);
             color: #4b5563;
             font-style: italic;
             margin-top: 20px;
@@ -2018,7 +2031,7 @@
             border: 2px solid #e5e7eb;
             border-radius: 12px;
             background: white;
-            font-size: 15px;
+            font-size: var(--test-option-size, 15px);
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2838,6 +2851,107 @@
             }
         }
     
+        /* 언어팩 아이템 스타일 */
+        .language-pack-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .dark-mode .language-pack-item {
+            background: var(--dark-card);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .language-pack-info {
+            flex: 1;
+        }
+
+        .language-pack-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .language-pack-size {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .dark-mode .language-pack-size {
+            color: var(--dark-text-secondary);
+        }
+
+        .language-pack-delete {
+            padding: 6px 12px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .language-pack-delete:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .language-option-btn {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dark-mode .language-option-btn {
+            background: var(--dark-hover);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--dark-text);
+        }
+
+        .language-option-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .language-option-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .language-option-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .language-option-size {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .dark-mode .language-option-size {
+            color: var(--dark-text-secondary);
+        }
+
+        .download-icon {
+            font-size: 24px;
+        }
+
     </style>
 </head>
 <body>
@@ -2934,6 +3048,38 @@
                         </div>
                     </div>
 
+                    <!-- 글씨 크기 설정 -->
+                    <div class="setting-card">
+                        <div class="setting-title">
+                            🔤 글씨 크기 설정
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="fontSizeSlider" 
+                                min="50" max="250" value="100" step="10"
+                                onchange="updateFontSize()">
+                            <span class="slider-value" id="fontSizeValue">100%</span>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 14px; color: #6b7280;">
+                            학습 및 테스트 모드의 글씨 크기를 조절합니다
+                        </div>
+                    </div>
+                    
+                    <!-- UI 글씨 크기 설정 -->
+                    <div class="setting-card">
+                        <div class="setting-title">
+                            📱 UI 글씨 크기 설정
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="uiFontSizeSlider" 
+                                min="80" max="200" value="100" step="5"
+                                onchange="updateUIFontSize()">
+                            <span class="slider-value" id="uiFontSizeValue">100%</span>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 14px; color: #6b7280;">
+                            메뉴, 버튼, 챕터 카드 등 전체 UI의 글씨 크기를 조절합니다
+                        </div>
+                    </div>
+
                     <!-- 로컬 파일 업로드 (기존 기능 유지) -->
                     <div class="setting-card">
                         <div class="setting-title">
@@ -2949,34 +3095,53 @@
                         </div>
                     </div>
 
+                    <!-- 기기간 전송 -->
+                    <div class="setting-card">
+                        <div class="setting-title">
+                            📱 기기간 전송
+                        </div>
+                        <button class="upload-btn" onclick="showDeviceTransferModal()">
+                            <span style="font-size: 24px;">🔄</span>
+                            <span>기기간 데이터 전송</span>
+                        </button>
+                        <div style="margin-top: 10px; font-size: 14px; color: #6b7280;">
+                            다른 기기로 학습 데이터를 전송하거나 받을 수 있습니다
+                        </div>
+                    </div>
+                    
+                    <!-- 원본 기기로 학습 데이터 보내기 (임시 단어장 사용 시만 표시) -->
+                    <div class="setting-card" id="sendBackToOriginalCard" style="display: none; border: 2px solid #f59e0b;">
+                        <div class="setting-title" style="color: #f59e0b;">
+                            📤 원본 기기로 학습 데이터 보내기
+                        </div>
+                        <button class="upload-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: #f59e0b;" onclick="showSendBackModal()">
+                            <span style="font-size: 24px;">📤</span>
+                            <span>학습 결과 전송</span>
+                        </button>
+                        <div style="margin-top: 10px; font-size: 14px; color: #f59e0b;">
+                            학습한 결과를 원본 기기로 되돌려 보냅니다
+                        </div>
+                        <div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
+                            <div style="font-size: 13px; color: #d97706;">
+                                ⏰ 남은 시간: <span id="sendBackTimeRemaining" style="font-weight: 600;">--:--:--</span>
+                            </div>
+                        </div>
+                        <button class="reset-btn" style="margin-top: 15px; background: #6b7280;" onclick="cancelTempVocab()">
+                            ↩️ 임시 단어장 취소 (원본 복원)
+                        </button>
+                    </div>
+
                     <!-- TTS 설정 -->
                     <div class="setting-card">
                         <div class="setting-title">
                             🔊 음성 설정 (TTS)
                         </div>
-                        <div class="voice-settings">
-                            <select class="voice-select" id="voiceSelect" onchange="changeVoice()">
-                                <option value="">음성 자동 선택</option>
-                            </select>
-                            <div class="tts-mode-group">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="wordMode" checked>
-                                    <label for="wordMode">단어 읽기</label>
-                                </div>
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="exampleMode">
-                                    <label for="exampleMode">예문 읽기</label>
-                                </div>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="testWordTTS" checked>
-                                <label for="testWordTTS">테스트모드에서 단어 읽기</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="testAnswerTTS">
-                                <label for="testAnswerTTS">테스트모드에서 예문 읽기</label>
-                            </div>
-                            <button class="test-voice-btn" onclick="testVoice()">🎤 음성 테스트</button>
+                        <button class="upload-btn" onclick="showTTSSettingsModal()">
+                            <span style="font-size: 24px;">🎤</span>
+                            <span>TTS 상세 설정</span>
+                        </button>
+                        <div style="margin-top: 10px; font-size: 14px; color: #6b7280;">
+                            음성 선택, 언어팩 다운로드, 읽기 설정 관리
                         </div>
                     </div>
 
@@ -3059,41 +3224,8 @@
                             </button>
                         </div>
                     </div>
-                    <!-- 기기간 전송 -->
-                    <div class="setting-card">
-                        <div class="setting-title">
-                            📱 기기간 전송
-                        </div>
-                        <button class="upload-btn" onclick="showDeviceTransferModal()">
-                            <span style="font-size: 24px;">🔄</span>
-                            <span>기기간 데이터 전송</span>
-                        </button>
-                        <div style="margin-top: 10px; font-size: 14px; color: #6b7280;">
-                            다른 기기로 학습 데이터를 전송하거나 받을 수 있습니다
-                        </div>
-                    </div>
-                    
-                    <!-- 원본 기기로 학습 데이터 보내기 (임시 단어장 사용 시만 표시) -->
-                    <div class="setting-card" id="sendBackToOriginalCard" style="display: none; border: 2px solid #f59e0b;">
-                        <div class="setting-title" style="color: #f59e0b;">
-                            📤 원본 기기로 학습 데이터 보내기
-                        </div>
-                        <button class="upload-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: #f59e0b;" onclick="showSendBackModal()">
-                            <span style="font-size: 24px;">📤</span>
-                            <span>학습 결과 전송</span>
-                        </button>
-                        <div style="margin-top: 10px; font-size: 14px; color: #f59e0b;">
-                            학습한 결과를 원본 기기로 되돌려 보냅니다
-                        </div>
-                        <div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
-                            <div style="font-size: 13px; color: #d97706;">
-                                ⏰ 남은 시간: <span id="sendBackTimeRemaining" style="font-weight: 600;">--:--:--</span>
-                            </div>
-                        </div>
-                        <button class="reset-btn" style="margin-top: 15px; background: #6b7280;" onclick="cancelTempVocab()">
-                            ↩️ 임시 단어장 취소 (원본 복원)
-                        </button>
-                    </div>
+
+
                     <!-- 구매 기록 -->
                     <div class="setting-card">
                         <div class="setting-title">
@@ -3482,6 +3614,108 @@
         </div>
 </div>
 
+    <!-- TTS 설정 모달 -->
+    <div class="modal" id="ttsSettingsModal">
+        <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <h3>🎤 TTS 상세 설정</h3>
+            
+            <!-- 언어팩 상태 -->
+            <div style="background: #f3f4f6; padding: 16px; border-radius: 12px; margin: 20px 0;">
+                <h4 style="margin-bottom: 12px; color: #1a1a1a;">다운로드된 언어팩</h4>
+                <div id="downloadedLanguagePacks" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- 동적으로 생성됨 -->
+                </div>
+                <button class="modal-btn" style="background: #ef4444; margin-top: 12px; width: 100%;" 
+                        onclick="deleteAllLanguagePacks()">
+                    🗑️ 모든 언어팩 삭제
+                </button>
+            </div>
+            
+            <!-- 기본 TTS 설정 -->
+            <div style="margin: 20px 0;">
+                <h4 style="margin-bottom: 12px;">기본 음성 설정</h4>
+                <select class="voice-select" id="modalVoiceSelect" onchange="changeVoiceFromModal()">
+                    <option value="">시스템 기본 음성</option>
+                </select>
+            </div>
+            
+            <!-- 읽기 모드 설정 -->
+            <div style="margin: 20px 0;">
+                <h4 style="margin-bottom: 12px;">읽기 모드</h4>
+                <div class="tts-mode-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="modalWordMode" checked>
+                        <label for="modalWordMode">단어 읽기</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="modalExampleMode">
+                        <label for="modalExampleMode">예문 읽기</label>
+                    </div>
+                </div>
+                <div class="checkbox-group" style="margin-top: 12px;">
+                    <input type="checkbox" id="modalTestWordTTS" checked>
+                    <label for="modalTestWordTTS">테스트모드에서 단어 읽기</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="modalTestAnswerTTS">
+                    <label for="modalTestAnswerTTS">테스트모드에서 예문 읽기</label>
+                </div>
+            </div>
+            
+            <!-- 음성 테스트 -->
+            <div style="margin: 20px 0;">
+                <button class="test-voice-btn" onclick="testVoice()" style="width: 100%;">
+                    🔊 음성 테스트
+                </button>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-btn yes" onclick="saveTTSSettings()">저장</button>
+                <button class="modal-btn no" onclick="closeTTSSettingsModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 언어팩 추천 모달 -->
+    <div class="modal" id="languagePackModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3 id="languagePackTitle">🌐 언어팩 다운로드 추천</h3>
+            <p id="languagePackMessage" style="margin: 20px 0;">
+                <!-- 동적으로 생성됨 -->
+            </p>
+            
+            <div id="languagePackOptions" style="display: flex; flex-direction: column; gap: 12px; margin: 20px 0;">
+                <!-- 동적으로 생성됨 -->
+            </div>
+            
+            <div style="background: #fef3c7; padding: 12px; border-radius: 8px; margin: 20px 0;">
+                <p style="font-size: 14px; color: #92400e; margin: 0;">
+                    ⚠️ 온라인 연결이 필요하며, 다운로드 후에는 오프라인에서도 사용 가능합니다.
+                    필요시 설정에서 삭제할 수 있습니다.
+                </p>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-btn no" onclick="closeLanguagePackModal()">나중에</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 언어팩 삭제 확인 모달 -->
+    <div class="modal" id="deleteLanguagePackModal">
+        <div class="modal-content">
+            <h3>🗑️ 언어팩 삭제</h3>
+            <p>모든 언어팩을 삭제하시겠습니까?</p>
+            <p style="font-size: 14px; color: #6b7280;">
+                삭제 후 다시 사용하려면 언어팩을 다운로드해야 자연스러운 목소리로 학습할 수 있습니다.
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn yes" onclick="confirmDeleteAllLanguagePacks()">삭제</button>
+                <button class="modal-btn no" onclick="closeDeleteLanguagePackModal()">취소</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 피드백 요소 -->
     <div class="feedback" id="feedback"></div>
 
@@ -3597,6 +3831,13 @@
         let tempMasteredWords = {}; // 임시 단어장에서 새로 마스터한 단어 추적
         let hasShownDailyStreak = false; // 일일 스트릭 모달 표시 여부
         let todayStudyRewarded = false; // 오늘 학습 보상 받았는지 여부
+
+        // Piper TTS 관련 변수
+        let piperTTS = null;
+        let downloadedLanguagePacks = {};
+        let currentLanguageDetected = null;
+        // 저장 상태 플래그
+        window.isSaving = false;
 
         // 초기화
         document.addEventListener('DOMContentLoaded', function() {
@@ -3927,6 +4168,11 @@
             currentVocab = appData.vocabularies[vocabId];
             
             closeVocabModal();
+            // 단어장 전환 시 진행상황 초기화 (데이터는 유지)
+            isStudyMode = false;
+            isTestMode = false;
+            document.getElementById('studyMode').style.display = 'none';
+            document.getElementById('testMode').style.display = 'none';
             updateUI();
             autoSave();
             
@@ -3934,6 +4180,10 @@
             broadcastDataChange('vocab-switch', { vocabId: vocabId });
             
             showFeedback(`📚 '${currentVocab.name}' 단어장으로 전환했습니다`, 'success');
+            // 언어팩 추천 확인
+            setTimeout(() => {
+                checkAndRecommendLanguagePack();
+            }, 1000);
         }
 
         function updateVocabStreak() {
@@ -4005,7 +4255,7 @@
             updateWeakWordsList();
             
             // 진행 중인 학습/테스트 자동 복원
-            checkAndResumeProgress();
+            // checkAndResumeProgress();
             
             // 임시 단어장 사용 중일 때 원본 전송 버튼 표시
             if (tempVocabData) {
@@ -4306,8 +4556,12 @@
                         currentVocab = appData.vocabularies[appData.currentVocabId];
                     }
                     
-                    // 글로벌 설정 복원
-                    restoreGlobalSettings();
+                    // 글로벌 설정 복원                    
+                    try {
+                        restoreGlobalSettings();
+                    } catch (error) {
+                        console.warn('Failed to restore global settings:', error);
+                    }
                     
                     // 임시 단어장 타이머 재시작
                     if (tempVocabData) {
@@ -4330,6 +4584,22 @@
                         todayStudyRewarded = true;
                     }
                 }
+                // 글씨 크기 초기 적용
+                applyFontSize();
+                // 언어팩 로드
+                const savedPacks = localStorage.getItem('piperLanguagePacks');
+                if (savedPacks) {
+                    try {
+                        downloadedLanguagePacks = JSON.parse(savedPacks);
+                    } catch (e) {
+                        downloadedLanguagePacks = {};
+                    }
+                }
+                // 앱 시작 시 기본 화면으로 초기화
+                isStudyMode = false;
+                isTestMode = false;
+                document.getElementById('studyMode').style.display = 'none';
+                document.getElementById('testMode').style.display = 'none';
                 updateUI();
             } catch (error) {
                 console.error('Failed to load saved data:', error);
@@ -4378,9 +4648,16 @@
         function restoreGlobalSettings() {
             const settings = appData.globalSettings;
             
+            if (!settings) return;
+            
             // 음성 설정
             if (settings.selectedVoice) {
                 document.getElementById('voiceSelect').value = settings.selectedVoice;
+                // 모달 음성 선택기가 있으면 업데이트
+                const modalVoiceSelect = document.getElementById('modalVoiceSelect');
+                if (modalVoiceSelect) {
+                    modalVoiceSelect.value = settings.selectedVoice;
+                }
             }
             
             // 체크박스 설정
@@ -4389,12 +4666,38 @@
             document.getElementById('testWordTTS').checked = settings.testWordTTS !== false;
             document.getElementById('testAnswerTTS').checked = settings.testAnswerTTS === true;
             
+            // 모달 체크박스가 있으면 업데이트
+            const modalWordMode = document.getElementById('modalWordMode');
+            if (modalWordMode) {
+                modalWordMode.checked = settings.wordTTS !== false;
+            }
+            const modalExampleMode = document.getElementById('modalExampleMode');
+            if (modalExampleMode) {
+                modalExampleMode.checked = settings.exampleTTS === true;
+            }
+            const modalTestWordTTS = document.getElementById('modalTestWordTTS');
+            if (modalTestWordTTS) {
+                modalTestWordTTS.checked = settings.testWordTTS !== false;
+            }
+            const modalTestAnswerTTS = document.getElementById('modalTestAnswerTTS');
+            if (modalTestAnswerTTS) {
+                modalTestAnswerTTS.checked = settings.testAnswerTTS === true;
+            }
+            
             // 슬라이더 설정
-            document.getElementById('studySpeedSlider').value = settings.studySpeed * 10;
+            document.getElementById('studySpeedSlider').value = (settings.studySpeed || 2.8) * 10;
             updateStudySpeed();
             
             document.getElementById('ttsPreloadSlider').value = (settings.ttsPreload || 0) * 10;
             updateTTSPreload();
+            
+            // 글씨 크기 설정 추가
+            document.getElementById('fontSizeSlider').value = settings.fontSize || 100;
+            updateFontSize();
+            
+            // UI 글씨 크기 설정 추가
+            document.getElementById('uiFontSizeSlider').value = settings.uiFontSize || 100;
+            updateUIFontSize();
             
             // 가시성 설정
             if (settings.visibility) {
@@ -4624,6 +4927,10 @@
         
         // 데이터 자동 저장 (동기화 포함)
         async function autoSave() {
+            // 이미 저장 중이면 중복 실행 방지
+            if (window.isSaving) return;
+            window.isSaving = true;
+            
             try {
                 // 임시 단어장 데이터도 포함하여 저장
                 const saveData = {
@@ -4676,6 +4983,8 @@
                     console.error('Failed to save data:', error);
                     showFeedback('데이터 저장에 실패했습니다', 'error');
                 }
+                } finally {
+                window.isSaving = false;
             }
         }
         
@@ -4976,7 +5285,19 @@
 
         // TTS 재생 (콜백 포함)
         function speakTextWithCallback(text, callback) {
-            if (!selectedVoice || !text) {
+            if (!text) {
+                if (callback) callback();
+                return;
+            }
+            
+            // Piper 음성인지 확인
+            if (selectedVoice && selectedVoice.isPiper) {
+                speakWithPiper(text, selectedVoice, callback);
+                return;
+            }
+            
+            // 기존 시스템 TTS 사용
+            if (!selectedVoice) {
                 if (callback) callback();
                 return;
             }
@@ -5073,6 +5394,102 @@
             autoSave();
         }
 
+        // 글씨 크기 업데이트
+        function updateFontSize() {
+            const slider = document.getElementById('fontSizeSlider');
+            const value = slider.value;
+            document.getElementById('fontSizeValue').textContent = value + '%';
+            appData.globalSettings.fontSize = parseInt(value);
+            
+            // 즉시 적용
+            applyFontSize();
+            applyUIFontSize();
+            autoSave();
+        }
+
+        // 글씨 크기 적용
+        function applyFontSize() {
+            const scale = (appData.globalSettings.fontSize || 100) / 100;
+            
+            // 학습 모드 글씨 크기
+            document.documentElement.style.setProperty('--study-word-size', (48 * scale) + 'px');
+            document.documentElement.style.setProperty('--study-pronunciation-size', (24 * scale) + 'px');
+            document.documentElement.style.setProperty('--study-meaning-size', (28 * scale) + 'px');
+            document.documentElement.style.setProperty('--study-example-size', (20 * scale) + 'px');
+            document.documentElement.style.setProperty('--study-example-meaning-size', (18 * scale) + 'px');
+            
+            // 테스트 모드 글씨 크기
+            document.documentElement.style.setProperty('--test-word-size', (40 * scale) + 'px');
+            document.documentElement.style.setProperty('--test-example-size', (18 * scale) + 'px');
+            document.documentElement.style.setProperty('--test-option-size', (15 * scale) + 'px');
+        }
+
+        // UI 글씨 크기 업데이트
+        function updateUIFontSize() {
+            const slider = document.getElementById('uiFontSizeSlider');
+            const value = slider.value;
+            document.getElementById('uiFontSizeValue').textContent = value + '%';
+            appData.globalSettings.uiFontSize = parseInt(value);
+            
+            // 즉시 적용
+            applyUIFontSize();
+            autoSave();
+        }
+
+        // UI 글씨 크기 적용
+        function applyUIFontSize() {
+            const scale = (appData.globalSettings.uiFontSize || 100) / 100;
+            
+            // 기본 폰트 크기
+            document.documentElement.style.setProperty('--base-font-size', (14 * scale) + 'px');
+            
+            // 헤더 및 타이틀
+            document.documentElement.style.setProperty('--header-title-size', (32 * scale) + 'px');
+            document.documentElement.style.setProperty('--header-subtitle-size', (14 * scale) + 'px');
+            document.documentElement.style.setProperty('--stat-value-size', (28 * scale) + 'px');
+            document.documentElement.style.setProperty('--stat-label-size', (11 * scale) + 'px');
+            
+            // 탭 네비게이션
+            document.documentElement.style.setProperty('--tab-font-size', (15 * scale) + 'px');
+            
+            // 챕터 카드
+            document.documentElement.style.setProperty('--chapter-title-size', (18 * scale) + 'px');
+            document.documentElement.style.setProperty('--chapter-info-size', (13 * scale) + 'px');
+            document.documentElement.style.setProperty('--chapter-stars-size', (22 * scale) + 'px');
+            
+            // 버튼
+            document.documentElement.style.setProperty('--button-font-size', (15 * scale) + 'px');
+            document.documentElement.style.setProperty('--small-button-size', (14 * scale) + 'px');
+            
+            // 모달
+            document.documentElement.style.setProperty('--modal-title-size', (24 * scale) + 'px');
+            document.documentElement.style.setProperty('--modal-text-size', (16 * scale) + 'px');
+            
+            // 설정 카드
+            document.documentElement.style.setProperty('--setting-title-size', (17 * scale) + 'px');
+            document.documentElement.style.setProperty('--setting-description-size', (14 * scale) + 'px');
+            
+            // 약한단어
+            document.documentElement.style.setProperty('--weak-word-title-size', (15 * scale) + 'px');
+            document.documentElement.style.setProperty('--weak-word-stats-size', (12 * scale) + 'px');
+            
+            // 단어장 선택
+            document.documentElement.style.setProperty('--vocab-name-size', (16 * scale) + 'px');
+            document.documentElement.style.setProperty('--vocab-stats-size', (13 * scale) + 'px');
+            
+            // 업로드 버튼
+            document.documentElement.style.setProperty('--upload-btn-size', (16 * scale) + 'px');
+            
+            // 체크박스 라벨
+            document.documentElement.style.setProperty('--checkbox-label-size', (14 * scale) + 'px');
+            
+            // 슬라이더 값
+            document.documentElement.style.setProperty('--slider-value-size', (14 * scale) + 'px');
+            
+            // h3 제목들
+            document.documentElement.style.setProperty('--section-title-size', (20 * scale) + 'px');
+        }
+
         // 학습 카드 가시성 업데이트
         function updateStudyCardVisibility() {
             const elements = {
@@ -5118,7 +5535,6 @@
         }
 
         // 백업 파일 업로드 처리
-// 백업 파일 업로드 처리
         function handleBackupUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -7718,6 +8134,347 @@
             
             showFeedback(`🗑️ '${vocabName}' 단어장이 초기화되었습니다`, 'success');
         }
+        // 언어 감지 함수
+        function detectLanguageFromVocabName(vocabName) {
+            const name = vocabName.toLowerCase();
+            
+            if (name.includes('영어') || name.includes('english') || name.includes('toeic') || name.includes('토익')) {
+                return 'english';
+            } else if (name.includes('일본어') || name.includes('japanese') || name.includes('jlpt')) {
+                return 'japanese';
+            } else if (name.includes('중국어') || name.includes('chinese') || name.includes('hsk')) {
+                return 'chinese';
+            } else if (name.includes('스페인어') || name.includes('spanish') || name.includes('español')) {
+                return 'spanish';
+            }
+            
+            return null;
+        }
+
+        // TTS 설정 모달 표시
+        function showTTSSettingsModal() {
+            document.getElementById('ttsSettingsModal').style.display = 'flex';
+            
+            // 현재 설정 로드
+            document.getElementById('modalVoiceSelect').value = appData.globalSettings.selectedVoice || '';
+            document.getElementById('modalWordMode').checked = appData.globalSettings.wordTTS !== false;
+            document.getElementById('modalExampleMode').checked = appData.globalSettings.exampleTTS === true;
+            document.getElementById('modalTestWordTTS').checked = appData.globalSettings.testWordTTS !== false;
+            document.getElementById('modalTestAnswerTTS').checked = appData.globalSettings.testAnswerTTS === true;
+            
+            // 다운로드된 언어팩 표시
+            updateDownloadedLanguagePacks();
+            
+            // 음성 목록 업데이트
+            updateModalVoiceSelector();
+        }
+
+        // TTS 설정 모달 닫기
+        function closeTTSSettingsModal() {
+            document.getElementById('ttsSettingsModal').style.display = 'none';
+        }
+
+        // TTS 설정 저장
+        function saveTTSSettings() {
+            appData.globalSettings.selectedVoice = document.getElementById('modalVoiceSelect').value;
+            appData.globalSettings.wordTTS = document.getElementById('modalWordMode').checked;
+            appData.globalSettings.exampleTTS = document.getElementById('modalExampleMode').checked;
+            appData.globalSettings.testWordTTS = document.getElementById('modalTestWordTTS').checked;
+            appData.globalSettings.testAnswerTTS = document.getElementById('modalTestAnswerTTS').checked;
+            
+            // 메인 설정에도 반영
+            document.getElementById('voiceSelect').value = appData.globalSettings.selectedVoice;
+            document.getElementById('wordMode').checked = appData.globalSettings.wordTTS;
+            document.getElementById('exampleMode').checked = appData.globalSettings.exampleTTS;
+            document.getElementById('testWordTTS').checked = appData.globalSettings.testWordTTS;
+            document.getElementById('testAnswerTTS').checked = appData.globalSettings.testAnswerTTS;
+            
+            selectedVoice = availableVoices.find(v => v.name === appData.globalSettings.selectedVoice) || null;
+            
+            autoSave();
+            closeTTSSettingsModal();
+            showFeedback('TTS 설정이 저장되었습니다', 'success');
+        }
+
+        // 모달 음성 선택기 업데이트
+        function updateModalVoiceSelector() {
+            const select = document.getElementById('modalVoiceSelect');
+            if (!select) return; // 요소가 없으면 실행하지 않음
+            
+            select.innerHTML = '<option value="">시스템 기본 음성</option>';
+            
+            // 시스템 음성 추가
+            availableVoices.forEach((voice) => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                select.appendChild(option);
+            });
+            
+            // Piper 음성 추가
+            Object.entries(downloadedLanguagePacks).forEach(([lang, pack]) => {
+                pack.voices.forEach(voice => {
+                    const option = document.createElement('option');
+                    option.value = `piper_${lang}_${voice.id}`;
+                    option.textContent = `[Piper] ${voice.displayName}`;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // 모달에서 음성 변경
+        function changeVoiceFromModal() {
+            const value = document.getElementById('modalVoiceSelect').value;
+            if (value.startsWith('piper_')) {
+                // Piper 음성 선택
+                const [_, lang, voiceId] = value.split('_');
+                selectedVoice = { isPiper: true, lang, voiceId };
+            } else {
+                selectedVoice = availableVoices.find(v => v.name === value) || null;
+            }
+        }
+
+        // 언어팩 추천 표시
+        function checkAndRecommendLanguagePack() {
+            // 자동 저장 중이면 실행하지 않음
+            if (window.isSaving) return;
+            
+            if (!currentVocab) return;
+            
+            const detectedLang = detectLanguageFromVocabName(currentVocab.name);
+            if (!detectedLang) return;
+            
+            // 이미 해당 언어팩이 있는지 확인
+            if (downloadedLanguagePacks[detectedLang]) return;
+            
+            // 이미 추천을 거절한 적이 있는지 확인
+            const dismissedKey = `languagePackDismissed_${currentVocab.id}_${detectedLang}`;
+            if (localStorage.getItem(dismissedKey) === 'true') return;
+            
+            currentLanguageDetected = detectedLang;
+            showLanguagePackModal(detectedLang);
+        }
+
+        // 언어팩 모달 표시
+        function showLanguagePackModal(language) {
+            const modal = document.getElementById('languagePackModal');
+            const title = document.getElementById('languagePackTitle');
+            const message = document.getElementById('languagePackMessage');
+            const options = document.getElementById('languagePackOptions');
+            
+            const languageInfo = {
+                english: {
+                    title: '영어 언어팩 다운로드',
+                    message: '영어 단어장을 선택하셨습니다. 자연스러운 영어 발음을 위해 언어팩을 다운로드하시겠습니까?',
+                    packs: [
+                        { id: 'en-us-male', name: '미국 영어 (남성)', size: '약 45MB' },
+                        { id: 'en-us-female', name: '미국 영어 (여성)', size: '약 48MB' },
+                        { id: 'en-gb-male', name: '영국 영어 (남성)', size: '약 43MB' },
+                        { id: 'en-gb-female', name: '영국 영어 (여성)', size: '약 46MB' }
+                    ]
+                },
+                japanese: {
+                    title: '일본어 언어팩 다운로드',
+                    message: '일본어 단어장을 선택하셨습니다. 자연스러운 일본어 발음을 위해 언어팩을 다운로드하시겠습니까?',
+                    packs: [
+                        { id: 'ja-male', name: '일본어 (남성)', size: '약 52MB' },
+                        { id: 'ja-female', name: '일본어 (여성)', size: '약 55MB' }
+                    ]
+                },
+                chinese: {
+                    title: '중국어 언어팩 다운로드',
+                    message: '중국어 단어장을 선택하셨습니다. 자연스러운 중국어 발음을 위해 언어팩을 다운로드하시겠습니까?',
+                    packs: [
+                        { id: 'zh-cn-male', name: '중국어 간체 (남성)', size: '약 58MB' },
+                        { id: 'zh-cn-female', name: '중국어 간체 (여성)', size: '약 61MB' }
+                    ]
+                },
+                spanish: {
+                    title: '스페인어 언어팩 다운로드',
+                    message: '스페인어 단어장을 선택하셨습니다. 자연스러운 스페인어 발음을 위해 언어팩을 다운로드하시겠습니까?',
+                    packs: [
+                        { id: 'es-male', name: '스페인어 (남성)', size: '약 42MB' },
+                        { id: 'es-female', name: '스페인어 (여성)', size: '약 44MB' }
+                    ]
+                }
+            };
+            
+            const info = languageInfo[language];
+            if (!info) return;
+            
+            title.textContent = info.title;
+            message.textContent = info.message;
+            
+            // 옵션 버튼 생성
+            options.innerHTML = '';
+            info.packs.forEach(pack => {
+                const btn = document.createElement('button');
+                btn.className = 'language-option-btn';
+                btn.onclick = () => downloadLanguagePack(language, pack);
+                
+                btn.innerHTML = `
+                    <div class="language-option-info">
+                        <div class="language-option-name">${pack.name}</div>
+                        <div class="language-option-size">${pack.size}</div>
+                    </div>
+                    <div class="download-icon">📥</div>
+                `;
+                
+                options.appendChild(btn);
+            });
+            
+            modal.style.display = 'flex';
+        }
+
+        // 언어팩 모달 닫기
+        function closeLanguagePackModal() {
+            document.getElementById('languagePackModal').style.display = 'none';
+            
+            // 거절 기록
+            if (currentLanguageDetected && currentVocab) {
+                const dismissedKey = `languagePackDismissed_${currentVocab.id}_${currentLanguageDetected}`;
+                localStorage.setItem(dismissedKey, 'true');
+            }
+        }
+
+        // 언어팩 다운로드 (시뮬레이션)
+        async function downloadLanguagePack(language, pack) {
+            const btn = event.target.closest('button');
+            const originalContent = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div style="text-align: center;">⏳ 다운로드 중...</div>';
+            
+            try {
+                // 실제로는 여기서 Piper 모델을 다운로드합니다
+                // 시뮬레이션을 위해 2초 대기
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // 다운로드 완료 처리
+                if (!downloadedLanguagePacks[language]) {
+                    downloadedLanguagePacks[language] = {
+                        name: languageNames[language],
+                        voices: []
+                    };
+                }
+                
+                downloadedLanguagePacks[language].voices.push({
+                    id: pack.id,
+                    displayName: pack.name,
+                    size: pack.size
+                });
+                
+                // 로컬 스토리지에 저장
+                localStorage.setItem('piperLanguagePacks', JSON.stringify(downloadedLanguagePacks));
+                
+                btn.innerHTML = '✅ 다운로드 완료';
+                
+                setTimeout(() => {
+                    closeLanguagePackModal();
+                    showFeedback(`${pack.name} 언어팩이 다운로드되었습니다`, 'success');
+                    
+                    // TTS 설정 모달이 열려있으면 업데이트
+                    if (document.getElementById('ttsSettingsModal').style.display === 'flex') {
+                        updateDownloadedLanguagePacks();
+                        updateModalVoiceSelector();
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                showFeedback('다운로드 중 오류가 발생했습니다', 'error');
+            }
+        }
+
+        const languageNames = {
+            english: '영어',
+            japanese: '일본어',
+            chinese: '중국어',
+            spanish: '스페인어'
+        };
+
+        // 다운로드된 언어팩 표시 업데이트
+        function updateDownloadedLanguagePacks() {
+            const container = document.getElementById('downloadedLanguagePacks');
+            container.innerHTML = '';
+            
+            if (Object.keys(downloadedLanguagePacks).length === 0) {
+                container.innerHTML = '<div style="color: #6b7280; text-align: center;">다운로드된 언어팩이 없습니다</div>';
+                return;
+            }
+            
+            Object.entries(downloadedLanguagePacks).forEach(([lang, pack]) => {
+                pack.voices.forEach(voice => {
+                    const item = document.createElement('div');
+                    item.className = 'language-pack-item';
+                    
+                    item.innerHTML = `
+                        <div class="language-pack-info">
+                            <div class="language-pack-name">${voice.displayName}</div>
+                            <div class="language-pack-size">${voice.size}</div>
+                        </div>
+                        <button class="language-pack-delete" onclick="deleteLanguagePack('${lang}', '${voice.id}')">
+                            삭제
+                        </button>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+            });
+        }
+
+        // 개별 언어팩 삭제
+        function deleteLanguagePack(language, voiceId) {
+            if (!downloadedLanguagePacks[language]) return;
+            
+            downloadedLanguagePacks[language].voices = 
+                downloadedLanguagePacks[language].voices.filter(v => v.id !== voiceId);
+            
+            if (downloadedLanguagePacks[language].voices.length === 0) {
+                delete downloadedLanguagePacks[language];
+            }
+            
+            localStorage.setItem('piperLanguagePacks', JSON.stringify(downloadedLanguagePacks));
+            updateDownloadedLanguagePacks();
+            updateModalVoiceSelector();
+            
+            showFeedback('언어팩이 삭제되었습니다', 'success');
+        }
+
+        // 모든 언어팩 삭제
+        function deleteAllLanguagePacks() {
+            document.getElementById('deleteLanguagePackModal').style.display = 'flex';
+        }
+
+        // 언어팩 삭제 확인
+        function confirmDeleteAllLanguagePacks() {
+            downloadedLanguagePacks = {};
+            localStorage.removeItem('piperLanguagePacks');
+            
+            updateDownloadedLanguagePacks();
+            updateModalVoiceSelector();
+            
+            document.getElementById('deleteLanguagePackModal').style.display = 'none';
+            showFeedback('모든 언어팩이 삭제되었습니다', 'success');
+        }
+
+        // 언어팩 삭제 모달 닫기
+        function closeDeleteLanguagePackModal() {
+            document.getElementById('deleteLanguagePackModal').style.display = 'none';
+        }
+
+        // Piper TTS로 음성 재생
+        async function speakWithPiper(text, voice) {
+            // 실제 구현시에는 Piper WASM을 사용하여 음성을 생성합니다
+            // 여기서는 시뮬레이션만 수행
+            console.log(`Piper TTS: ${text} with voice ${voice.voiceId}`);
+            
+            // 콜백 실행
+            if (arguments[1] && typeof arguments[1] === 'function') {
+                setTimeout(arguments[1], 1000);
+            }
+        }
 
         // 피드백 표시
         // GitHub 저장소 URL (여기에 본인의 GitHub 주소를 넣으세요)
@@ -7807,6 +8564,8 @@
                     testWordTTS: true,
                     testAnswerTTS: false,
                     ttsPreload: 0,
+                    fontSize: 100,  // 이 줄 추가 (기본값 100%)
+                    uiFontSize: 100,  // UI 글씨 크기 추가
                     visibility: {
                         word: true,
                         pronunciation: true,
