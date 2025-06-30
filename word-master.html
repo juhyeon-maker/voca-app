@@ -4182,6 +4182,8 @@
             showFeedback(`📚 '${currentVocab.name}' 단어장으로 전환했습니다`, 'success');
             // 언어팩 추천 확인
             setTimeout(() => {
+                console.log('단어장 이름:', currentVocab.name);
+                console.log('감지된 언어:', detectLanguageFromVocabName(currentVocab.name));
                 checkAndRecommendLanguagePack();
             }, 1000);
         }
@@ -8134,17 +8136,51 @@
             
             showFeedback(`🗑️ '${vocabName}' 단어장이 초기화되었습니다`, 'success');
         }
+
         // 언어 감지 함수
         function detectLanguageFromVocabName(vocabName) {
             const name = vocabName.toLowerCase();
             
-            if (name.includes('영어') || name.includes('english') || name.includes('toeic') || name.includes('토익')) {
+            // 영어 관련 키워드 (더 포괄적으로)
+            if (name.includes('영어') || 
+                name.includes('영단어') || 
+                name.includes('english') || 
+                name.includes('toeic') || 
+                name.includes('토익') || 
+                name.includes('toefl') || 
+                name.includes('토플') || 
+                name.includes('ielts') || 
+                name.includes('아이엘츠') ||
+                name.includes('수능') && name.includes('영') ||
+                name.includes('sat') ||
+                name.includes('gre')) {
                 return 'english';
-            } else if (name.includes('일본어') || name.includes('japanese') || name.includes('jlpt')) {
+            } 
+            // 일본어 관련 키워드
+            else if (name.includes('일본어') || 
+                     name.includes('일어') ||
+                     name.includes('japanese') || 
+                     name.includes('jlpt') ||
+                     name.includes('にほんご') ||
+                     name.includes('日本語')) {
                 return 'japanese';
-            } else if (name.includes('중국어') || name.includes('chinese') || name.includes('hsk')) {
+            } 
+            // 중국어 관련 키워드
+            else if (name.includes('중국어') || 
+                     name.includes('중어') ||
+                     name.includes('chinese') || 
+                     name.includes('hsk') ||
+                     name.includes('중문') ||
+                     name.includes('汉语') ||
+                     name.includes('中文')) {
                 return 'chinese';
-            } else if (name.includes('스페인어') || name.includes('spanish') || name.includes('español')) {
+            } 
+            // 스페인어 관련 키워드
+            else if (name.includes('스페인어') || 
+                     name.includes('스페인') ||
+                     name.includes('spanish') || 
+                     name.includes('español') ||
+                     name.includes('dele')) {
                 return 'spanish';
             }
             
@@ -8245,14 +8281,31 @@
             if (!detectedLang) return;
             
             // 이미 해당 언어팩이 있는지 확인
-            if (downloadedLanguagePacks[detectedLang]) return;
+            if (downloadedLanguagePacks[detectedLang] && 
+                downloadedLanguagePacks[detectedLang].voices && 
+                downloadedLanguagePacks[detectedLang].voices.length > 0) {
+                return;
+            }
             
-            // 이미 추천을 거절한 적이 있는지 확인
-            const dismissedKey = `languagePackDismissed_${currentVocab.id}_${detectedLang}`;
-            if (localStorage.getItem(dismissedKey) === 'true') return;
+            // 이미 추천을 거절한 적이 있는지 확인 (단어장별이 아닌 언어별로)
+            const dismissedKey = `languagePackDismissed_${detectedLang}`;
+            const lastDismissed = localStorage.getItem(dismissedKey);
+            
+            // 거절한지 7일이 지났으면 다시 추천
+            if (lastDismissed) {
+                const dismissedDate = new Date(parseInt(lastDismissed));
+                const daysPassed = (Date.now() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24);
+                if (daysPassed < 7) {
+                    return;
+                }
+            }
             
             currentLanguageDetected = detectedLang;
-            showLanguagePackModal(detectedLang);
+            
+            // 약간의 딜레이를 주어 UI가 완전히 로드된 후 표시
+            setTimeout(() => {
+                showLanguagePackModal(detectedLang);
+            }, 500);
         }
 
         // 언어팩 모달 표시
@@ -8330,10 +8383,10 @@
         function closeLanguagePackModal() {
             document.getElementById('languagePackModal').style.display = 'none';
             
-            // 거절 기록
-            if (currentLanguageDetected && currentVocab) {
-                const dismissedKey = `languagePackDismissed_${currentVocab.id}_${currentLanguageDetected}`;
-                localStorage.setItem(dismissedKey, 'true');
+            // 거절 기록 (언어별로 저장)
+            if (currentLanguageDetected) {
+                const dismissedKey = `languagePackDismissed_${currentLanguageDetected}`;
+                localStorage.setItem(dismissedKey, Date.now().toString());
             }
         }
 
